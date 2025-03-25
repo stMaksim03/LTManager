@@ -1,7 +1,9 @@
 #include <iostream>
+#include "BaseClasses/Product.cpp"
 
-
-int main (int argc, char* argv)
+int main (int argc, char** argv)
 {
-    std::cout << "hello world";
+    auto apple = new Product("apple", 0, 0.5);
+    std::cout << apple -> get_name();
+    getchar();
 }
