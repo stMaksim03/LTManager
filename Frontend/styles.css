@@ -1,0 +1,101 @@
+/* Основные стили для страницы */
+body {
+    font-family: 'Jost', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #fff; /* Белый фон */
+}
+
+/* Навигационная панель */
+nav {
+    background-color: #fff;
+    padding: 5px 40px;
+    border-bottom: 2px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+}
+
+/* Логотип */
+.logo img {
+    width: 170px;
+    height: auto;
+}
+
+/* Стили для списка и элементов меню */
+.nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 25px; /* Расстояние между пунктами */
+}
+
+.nav-menu li {
+    display: inline-block;
+}
+
+.nav-menu li a {
+    color: black;
+    text-decoration: none;
+    padding: 5px 10px;
+    font-size: 25px; /* Увеличенный размер шрифта */
+    font-weight: normal;
+    transition: text-decoration 0.3s;
+}
+
+.nav-menu li a:hover {
+    text-decoration: underline;
+}
+
+/* Кнопка меню для мобильных */
+.menu-toggle {
+    display: none;
+    font-size: 35px;
+    cursor: pointer;
+}
+
+
+footer {
+    background-color: #C0C0C0; /* Светло-серый фон */
+    text-align: center; /* Центрирование текста */
+    padding: 15px;
+    font-size: 20px; /* Увеличенный размер шрифта */
+    color: black; /* Темный цвет текста */
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+
+
+/* Адаптивный дизайн */
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        background-color: #fff;
+        border-top: 2px solid #ccc;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 10px 0;
+    }
+
+    .nav-menu.active {
+        display: flex;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .nav-menu li {
+        text-align: center;
+        padding: 12px 0;
+    }
+}
