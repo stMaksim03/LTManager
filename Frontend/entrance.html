@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LTmanager</title>
+    <link rel="stylesheet" href="reset.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="entrance.css">
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Шапка сайта -->
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html"><img src="scr/logo.svg" alt="Логотип"></a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="entrance.html">Войти</a></li>
+                <li><a href="creating-task.html">Создать задачу</a></li>
+                <li><a href="#">О сервисе</a></li>
+            </ul>
+            <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+        </nav>
+    </header>
+
+    <!-- Основное содержимое -->
+    <main>
+        <div class="container">   
+            <div id="register-form" class="form-container">
+              <h2>Регистрация</h2>
+              <form>
+                <div class="form-group">
+                  <input type="text" id="register-email" align="center" placeholder="Логин" required>
+                </div>
+                <div class="form-group">
+                  <input type="password" id="register-password" align="center" placeholder="Пароль" required>
+                </div>
+                <div class="form-buttons">
+                    <button type="submit">Создать</button>
+                    <a id="show-login">Войти в аккаунт</a>
+                </div>
+              </form>
+            </div>
+          
+            <div id="login-form" class="form-container active">
+                <h2>Вход в аккаунт</h2>
+                <form>
+                  <div class="form-group">
+                    <input type="text" id="register-email" align="center" placeholder="Логин" required>
+                  </div>
+                  <div class="form-group">
+                    <input type="password" id="register-password" align="center" placeholder="Пароль" required>
+                  </div>
+                  <div class="form-buttons">
+                      <button type="submit">Войти</button>
+                      <a id="show-register">Регистрация</a>
+                  </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Подвал сайта -->
+    <footer>
+        <p>&copy; 2025 Все права защищены.</p>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            document.querySelector(".nav-menu").classList.toggle("active");
+        }
+    </script>
+
+    <script>
+        const registerButton = document.getElementById('show-register');
+        const loginButton = document.getElementById('show-login');
+        const registerForm = document.getElementById('register-form');
+        const loginForm = document.getElementById('login-form');
+        
+        registerButton.addEventListener('click', () => {
+        registerForm.classList.add('active');
+        loginForm.classList.remove('active');
+        });
+        
+        loginButton.addEventListener('click', () => {
+        loginForm.classList.add('active');
+        registerForm.classList.remove('active');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+main {
+    text-align: center;
+}
+
+h1 {
+    font-size: 30px;
+    margin: 20px;
+    color: #1f2937;
+}
+
+.container {
+    width: 400px;
+    background-color: #dcdcdc8f;
+    padding: 20px;
+    margin: 50px auto;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.container h2 {
+    margin-top: 0;
+    font-size: 20px;
+    text-align: center;
+    color: rgb(85, 85, 85);
+}
+
+.form {
+    background-color: white;
+    padding: 20px;
+    margin-top: 10px;
+    border-radius: 5px;
+    display: flex; /* Размещение полей рядом */
+    align-items: center;
+}
+
+.form input {
+    flex-grow: 1; /* Растягиваем поля на всю ширину */
+    margin-right: 10px;
+    padding: 10px;
+    border: none;
+    border-radius: 3px;
+    background-color: #efefef;
+    width: 100%;
+}
+
+.form button {
+    background-color: #efefef;
+    border: none;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.form button:hover {
+    background-color: #d7d7d7;
+}
+
+.form button::before {
+    content: "\1F5D1"; /* Unicode символ корзины */
+    margin-right: 5px;
+    font-size: 25px;
+}
+
+.add-form-button {
+    display: block;
+    margin-top: 10px;
+    background-color: #ffffff;
+    color: #9f9f9f;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.add-form-button:hover {
+    background-color: #d7d7d7;
+    color: #8b8b8b;
+}
+
+@media (max-width: 450px) {
+    .container {
+        width: 70%;
+        background-color: #dcdcdc8f;
+        padding: 20px;
+        margin: 20px auto;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    .form {
+        background-color: white;
+        padding: 20px;
+        margin-top: 10px;
+        border-radius: 5px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .form input {
+        flex-grow: 1; /* Растягиваем поля на всю ширину */
+        margin: 10px;
+        padding: 10px;
+        border: none;
+        border-radius: 3px;
+        background-color: #efefef;
+        width: 100%;
+    }
+}

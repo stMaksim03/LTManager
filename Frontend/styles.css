@@ -4,6 +4,9 @@ body {
     margin: 0;
     padding: 0;
     background-color: #fff; /* Белый фон */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 /* Навигационная панель */
@@ -64,8 +67,7 @@ footer {
     padding: 15px;
     font-size: 20px; /* Увеличенный размер шрифта */
     color: black; /* Темный цвет текста */
-    position: absolute;
-    bottom: 0;
+    margin-top: auto;
     width: 100%;
 }
 
