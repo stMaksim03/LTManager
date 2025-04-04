@@ -23,12 +23,11 @@ class Product
         ~Product();
 
         //Overrides
-        inline bool operator<(const Product&);
-        inline bool operator>(const Product&);
-        inline bool operator<=(const Product&);
-        inline bool operator>=(const Product&);
-
-        inline bool operator==(const Product&);
+        inline bool operator<(Product&);
+        inline bool operator>(Product&);
+        inline bool operator<=(Product&);
+        inline bool operator>=(Product&);
+        inline bool operator==(Product&);
 
         //Setters
         void set_name(std::string);

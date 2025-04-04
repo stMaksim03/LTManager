@@ -20,11 +20,11 @@ Product::~Product()
 }
 
 //Override
-inline bool Product::operator<(const Product& rhs){ return this -> id < rhs.id; }
-inline bool Product::operator>(const Product& rhs){ return *this < rhs; }
-inline bool Product::operator<=(const Product& rhs){ return !(*this > rhs);  }
-inline bool Product::operator>=(const Product& rhs){ return !(*this < rhs);  }
-inline bool Product::operator==(const Product& rhs){ return this -> name == rhs.name && this -> weight == rhs.weight; }
+inline bool Product::operator<(Product& rhs){ return this -> id < rhs.id; }
+inline bool Product::operator>(Product& rhs){ return rhs < *this; }
+inline bool Product::operator<=(Product& rhs){ return !(*this > rhs);  }
+inline bool Product::operator>=(Product& rhs){ return !(*this < rhs);  }
+inline bool Product::operator==(Product& rhs){ return this -> name == rhs.name && this -> weight == rhs.weight; }
 
 //Setters
 void Product::set_name(std::string name){ this -> name = name; }
