@@ -18,7 +18,7 @@
             </div>
             <ul class="nav-menu">
                 <li><a href="entrance.html">Войти</a></li>
-                <li><a href="#">Создать задачу</a></li>
+                <li><a href="creating-task.html">Создать задачу</a></li>
                 <li><a href="#">О сервисе</a></li>
             </ul>
             <div class="menu-toggle" onclick="toggleMenu()">☰</div>
@@ -28,31 +28,84 @@
     <!-- Основное содержимое -->
     <main>
         <h1>Создание задачи</h1>
-        
-        <div class="container">
-            <h2>Укажите типы грузов</h2>
-            <div id="container-cargo-type">
-              <div class="form" class="form-cargo-type" id="form-cargo-type-0">
-                  <input type="text" placeholder="Наименование">
-                  <input type="text" placeholder="Вес/ед">
-                  <button class="remove-form-cargo-type"></button>
-              </div>
+
+            <div class="types">
+                <div class="container">
+                    <h2>Типы грузов</h2>
+                    <div id="container-cargo-type">
+                      <div class="form" class="form-cargo-type" id="form-cargo-type-0">
+                          <input type="text" placeholder="Наименование груза">
+                          <input type="text" placeholder="Вес/ед">
+                          <button class="bin remove-form-cargo-type"></button>
+                      </div>
+                    </div>
+                    <button class="add-form-button" class="add-form-cargo-type" id="add-form-cargo-type">Добавить еще</button>
+                </div>
+                
+                <div class="container">
+                    <h2>Типы машин</h2>
+                    <div id="form-truck-type">
+                      <div class="form" class="form-truck-type" id="form-truck-type-0">
+                          <input type="text" placeholder="Наименование">
+                          <input type="text" placeholder="Грузоподъемность/т">
+                          <button class="bin remove-form-truck-type"></button>
+                      </div>
+                    </div>
+                    <button class="add-form-button" class="add-form-truck-type" id="add-form-truck-type">Добавить еще</button>
+                </div>
             </div>
-            <button class="add-form-button" class="add-form-cargo-type" id="add-form-cargo-type">Добавить еще</button>
-        </div>
-        
-        <div class="container">
-            <h2>Укажите типы машин</h2>
-            <div id="form-truck-type">
-              <div class="form" class="form-truck-type" id="form-truck-type-0">
-                  <input type="text" placeholder="Наименование">
-                  <input type="text" placeholder="Грузоподъемность/т">
-                  <button class="remove-form-truck-type"></button>
-              </div>
+
+            <div class="container">
+                <h2>Склады/отправка</h2>
+                <div id="container-warehouse">
+                  <div class="warehouse-form" id="warehouse-form-0">
+                      <div class="form form-place">
+                          <input type="text" placeholder="Название">
+                          <input type="text" placeholder="Адрес">
+                      </div>
+                      <div class="cargo-list">
+                        <div class="cargo-item">
+                            <div class="cargo-item-specification">
+                                <input type="text" placeholder="Тип груза">
+                                <input type="text" placeholder="Количество">
+                            </div>
+                            <div class="cargo-item-buttons">
+                              <button class="add-cargo">Добавить груз</button>
+                              <button class="remove-cargo">Удалить груз</button>
+                          </div>
+                        </div>
+                      </div>
+                      <button class="remove-warehouse">Удалить склад</button>
+                  </div>
+                </div>
+                <button class="add-form-button" id="add-warehouse">Добавить еще</button>
             </div>
-            <button class="add-form-button" class="add-form-truck-type" id="add-form-truck-type">Добавить еще</button>
-        </div>
-          
+            
+            <div class="container">
+                <h2>Пункты приема</h2>
+                <div id="container-destination">
+                  <div class="destination-form" id="destination-form-0">
+                      <div class="form form-place">
+                          <input type="text" placeholder="Название">
+                          <input type="text" placeholder="Адрес">
+                      </div>
+                      <div class="cargo-list">
+                        <div class="cargo-item">
+                            <div class="cargo-item-specification">
+                                <input type="text" placeholder="Тип груза">
+                                <input type="text" placeholder="Количество">
+                            </div>
+                            <div class="cargo-item-buttons">
+                              <button class="add-cargo">Добавить груз</button>
+                              <button class="remove-cargo">Удалить груз</button>
+                          </div>
+                        </div>
+                      </div>
+                      <button class="remove-destination">Удалить пункт</button>
+                  </div>
+                </div>
+                <button class="add-form-button" id="add-destination">Добавить еще</button>
+            </div>
     </main>
 
     <!-- Подвал сайта -->
@@ -64,10 +117,8 @@
         function toggleMenu() {
             document.querySelector(".nav-menu").classList.toggle("active");
         }
-    </script>
 
-    <script>
-        function createDynamicForm(containerId, formClass, addButtonId, fillingLable) {
+        function createLittleDynamicForm(containerId, formClass, addButtonId, fillingLable) {
             const container = document.getElementById(containerId);
             const addButton = document.getElementById(addButtonId);
             let formCount = 1;
@@ -79,7 +130,7 @@
                 newForm.innerHTML = `
                     <input type="text" placeholder="Наименование">
                     <input type="text" placeholder="${fillingLable}">
-                    <button class="remove-${formClass}"></button>
+                    <button class="bin remove-${formClass}"></button>
                 `;
                 container.appendChild(newForm);
 
@@ -99,8 +150,100 @@
             });
         }
 
-        createDynamicForm('container-cargo-type', 'form-cargo-type', 'add-form-cargo-type', 'Вес/ед');
-        createDynamicForm('form-truck-type', 'form-truck-type', 'add-form-truck-type', 'Грузоподъемность/т');
+        function createBigDynamicForm(containerId, addButtonId, type) {
+            const container = document.getElementById(containerId);
+            const addButton = document.getElementById(addButtonId);
+            let formCount = 1;
+
+            addButton.addEventListener('click', () => {
+                const newForm = document.createElement('div');
+                newForm.classList.add(`${type}-form`);
+                newForm.id = `${type}-form-${formCount}`;
+                newForm.innerHTML = `
+                    <div class="form form-place">
+                        <input type="text" placeholder="Название">
+                        <input type="text" placeholder="Адрес">
+                    </div>
+                    <div class="cargo-list">
+                        <div class="cargo-item">
+                            <div class="cargo-item-specification">
+                                <input type="text" placeholder="Тип груза">
+                                <input type="text" placeholder="Количество">
+                            </div>
+                            <div class="cargo-item-buttons">
+                                <button class="add-cargo">Добавить груз</button>
+                                <button class="remove-cargo">Удалить груз</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="remove-${type}">Удалить ${type === 'warehouse' ? 'склад' : 'пункт'}</button>
+                `;
+                container.appendChild(newForm);
+
+                const addCargoButtons = newForm.querySelectorAll('.add-cargo');
+                const removeCargoButtons = newForm.querySelectorAll('.remove-cargo');
+
+                addCargoButtons.forEach(btn => {
+                    btn.addEventListener('click', addCargoItem);
+                });
+
+                removeCargoButtons.forEach(btn => {
+                    btn.addEventListener('click', removeCargoItem);
+                });
+
+                formCount++;
+            });
+
+            container.addEventListener('click', (event) => {
+                if (event.target.classList.contains(`remove-${type}`)) {
+                    const formBlock = event.target.parentNode;
+                    container.removeChild(formBlock);
+                }
+            });
+
+            const addCargoButtons = container.querySelectorAll('.add-cargo');
+            const removeCargoButtons = container.querySelectorAll('.remove-cargo');
+
+            addCargoButtons.forEach(btn => {
+                btn.addEventListener('click', addCargoItem);
+            });
+
+            removeCargoButtons.forEach(btn => {
+                btn.addEventListener('click', removeCargoItem);
+            });
+
+            function addCargoItem(e) {
+                const cargoList = e.target.closest('.cargo-list');
+                const newCargoItem = document.createElement('div');
+                newCargoItem.classList.add('cargo-item');
+                newCargoItem.innerHTML = `
+                    <div class="cargo-item-specification">
+                        <input type="text" placeholder="Тип груза">
+                        <input type="text" placeholder="Количество">
+                    </div>
+                    <div class="cargo-item-buttons">
+                        <button class="add-cargo">Добавить груз</button>
+                        <button class="remove-cargo">Удалить груз</button>
+                    </div>
+                `;
+                cargoList.appendChild(newCargoItem);
+
+                newCargoItem.querySelector('.add-cargo').addEventListener('click', addCargoItem);
+                newCargoItem.querySelector('.remove-cargo').addEventListener('click', removeCargoItem);
+            }
+
+            function removeCargoItem(e) {
+                const cargoItem = e.target.closest('.cargo-item');
+                if (cargoItem && cargoItem.parentElement.querySelectorAll('.cargo-item').length > 1) {
+                    cargoItem.parentElement.removeChild(cargoItem);
+                }
+            }
+        }
+
+        createLittleDynamicForm('container-cargo-type', 'form-cargo-type', 'add-form-cargo-type', 'Вес/ед');
+        createLittleDynamicForm('form-truck-type', 'form-truck-type', 'add-form-truck-type', 'Грузоподъемность/т');
+        createBigDynamicForm('container-warehouse', 'add-warehouse', 'warehouse');
+        createBigDynamicForm('container-destination', 'add-destination', 'destination');
     </script>
 </body>
 </html>

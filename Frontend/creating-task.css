@@ -12,9 +12,10 @@ h1 {
     width: 400px;
     background-color: #dcdcdc8f;
     padding: 20px;
-    margin: 50px auto;
+    margin: 20px 20px;
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    display: inline-block;
 }
 
 .container h2 {
@@ -29,17 +30,57 @@ h1 {
     padding: 20px;
     margin-top: 10px;
     border-radius: 5px;
-    display: flex; /* Размещение полей рядом */
+    display: flex;
     align-items: center;
 }
 
-.form input {
-    flex-grow: 1; /* Растягиваем поля на всю ширину */
-    margin-right: 10px;
+.form-place {
+    background-color: white;
+    margin-top: 10px;
+    padding: 0;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.warehouse-form, .destination-form {
+    background-color: white;
+    padding: 20px;
+    margin-top: 10px;
+    border-radius: 5px;
+}
+
+.warehouse-form, .destination-form {
+    margin-bottom: 15px;
+}
+
+.cargo-list {
+    margin-top: 10px;
+    flex-direction: column;
+}
+
+.cargo-item {
+    display: flex;
+    align-items: center;
+    margin: 10px 0px;
+    flex-direction: column;
+    background-color: #f7f7f7;
+    border-radius: 10px;
+}
+
+.cargo-item-specification, .cargo-item-buttons {
+    display: flex;
+    flex-direction: row;
+    margin-top: 10px;
+}
+
+.form input, .cargo-item-specification input {
+    flex-grow: 1;
+    margin: 0px 5px;
     padding: 10px;
     border: none;
     border-radius: 3px;
-    background-color: #efefef;
+    background-color: #ebebeb;
     width: 100%;
 }
 
@@ -54,8 +95,8 @@ h1 {
     background-color: #d7d7d7;
 }
 
-.form button::before {
-    content: "\1F5D1"; /* Unicode символ корзины */
+.bin::before {
+    content: "\1F5D1";
     margin-right: 5px;
     font-size: 25px;
 }
@@ -75,6 +116,36 @@ h1 {
 .add-form-button:hover {
     background-color: #d7d7d7;
     color: #8b8b8b;
+}
+
+.cargo-item-buttons button {
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    background-color: #f7f7f7;
+    color: #777777;
+    flex-grow: 1;
+    margin: 0px 35px 3px 35px;
+    padding: 10px;
+}
+
+.cargo-item-buttons button:hover {
+    text-decoration: underline;
+}
+
+.remove-warehouse, .remove-destination {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    margin-top: 10px;
+    background-color: #d0d0d0;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.remove-warehouse:hover, .remove-destination:hover {
+    background-color: #b6b6b6;
 }
 
 @media (max-width: 450px) {
@@ -98,12 +169,22 @@ h1 {
     }
 
     .form input {
-        flex-grow: 1; /* Растягиваем поля на всю ширину */
+        flex-grow: 1;
         margin: 10px;
         padding: 10px;
         border: none;
         border-radius: 3px;
         background-color: #efefef;
         width: 100%;
+    }
+
+
+    .cargo-item {
+        flex-direction: column;
+    }
+
+    .cargo-item input, .cargo-item button {
+        width: 100%;
+        margin: 5px 0;
     }
 }

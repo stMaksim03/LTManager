@@ -44,7 +44,7 @@ nav {
     color: black;
     text-decoration: none;
     padding: 5px 10px;
-    font-size: 25px; /* Увеличенный размер шрифта */
+    font-size: 22px; /* Увеличенный размер шрифта */
     font-weight: normal;
     transition: text-decoration 0.3s;
 }
