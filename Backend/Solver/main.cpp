@@ -1,5 +1,4 @@
 #include <iostream>
-#include "BaseClasses/Product.cpp"
 #include "BaseClasses/ProductContainer.cpp"
 
 int main (int argc, char** argv)

@@ -2,7 +2,7 @@
 #ifndef PRODUCTCONTAINER_H
 #define PRODUCTCONTAINER_H
 
-#include "Product.h"
+#include "Product.cpp"
 
 class ProductContainer
 {
