@@ -84,6 +84,10 @@ h1 {
     width: 100%;
 }
 
+input[list="cargo-types-list"]::-webkit-calendar-picker-indicator {
+    opacity: 100;
+}
+
 .form button {
     background-color: #efefef;
     border: none;

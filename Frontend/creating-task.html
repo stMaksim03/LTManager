@@ -34,7 +34,7 @@
                     <h2>Типы грузов</h2>
                     <div id="container-cargo-type">
                       <div class="form" class="form-cargo-type" id="form-cargo-type-0">
-                          <input type="text" placeholder="Наименование груза">
+                          <input type="text" placeholder="Наименование груза" class="cargo-name-input">
                           <input type="text" placeholder="Вес/ед">
                           <button class="bin remove-form-cargo-type"></button>
                       </div>
@@ -66,7 +66,8 @@
                       <div class="cargo-list">
                         <div class="cargo-item">
                             <div class="cargo-item-specification">
-                                <input type="text" placeholder="Тип груза">
+                                <input type="text" placeholder="Тип груза" class="cargo-type-input" list="cargo-types-list">
+                                <datalist id="cargo-types-list"></datalist>
                                 <input type="text" placeholder="Количество">
                             </div>
                             <div class="cargo-item-buttons">
@@ -92,7 +93,8 @@
                       <div class="cargo-list">
                         <div class="cargo-item">
                             <div class="cargo-item-specification">
-                                <input type="text" placeholder="Тип груза">
+                                <input type="text" placeholder="Тип груза" class="cargo-type-input" list="cargo-types-list">
+                                <datalist id="cargo-types-list"></datalist>
                                 <input type="text" placeholder="Количество">
                             </div>
                             <div class="cargo-item-buttons">
@@ -118,6 +120,26 @@
             document.querySelector(".nav-menu").classList.toggle("active");
         }
 
+        function updateCargoTypesList() {
+            const cargoNameInputs = document.querySelectorAll('.cargo-name-input');
+            const cargoTypesList = document.getElementById('cargo-types-list');
+            
+            cargoTypesList.innerHTML = '';
+            
+            const cargoTypes = new Set();
+            cargoNameInputs.forEach(input => {
+                if (input.value.trim() !== '') {
+                    cargoTypes.add(input.value.trim());
+                }
+            });
+            
+            cargoTypes.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                cargoTypesList.appendChild(option);
+            });
+        }
+
         function createLittleDynamicForm(containerId, formClass, addButtonId, fillingLable) {
             const container = document.getElementById(containerId);
             const addButton = document.getElementById(addButtonId);
@@ -127,27 +149,51 @@
                 const newForm = document.createElement('div');
                 newForm.classList.add('form', formClass);
                 newForm.id = `${formClass}-${formCount}`;
+                
+                const isCargoType = formClass === 'form-cargo-type';
+                const nameInputClass = isCargoType ? 'cargo-name-input' : '';
+                
                 newForm.innerHTML = `
-                    <input type="text" placeholder="Наименование">
+                    <input type="text" placeholder="Наименование" class="${nameInputClass}">
                     <input type="text" placeholder="${fillingLable}">
                     <button class="bin remove-${formClass}"></button>
                 `;
                 container.appendChild(newForm);
 
+                // обработчики для новых создаваемых форм
                 const removeButton = newForm.querySelector(`.remove-${formClass}`);
                 removeButton.addEventListener('click', () => {
                     container.removeChild(newForm);
+                    if (isCargoType) {
+                        updateCargoTypesList(); // обновление списка при удалении
+                    }
                 });
+
+                if (isCargoType) {
+                    const nameInput = newForm.querySelector('.cargo-name-input');
+                    nameInput.addEventListener('input', updateCargoTypesList); // обработчик изменения полей наименования груза
+                }
 
                 formCount++;
             });
 
+            // обработчики для начальных форм
             container.addEventListener('click', (event) => {
                 if (event.target.classList.contains(`remove-${formClass}`)) {
                     const formBlock = event.target.parentNode;
                     container.removeChild(formBlock);
+                    if (formClass === 'form-cargo-type') {
+                        updateCargoTypesList(); // обновление списка при удалении
+                    }
                 }
             });
+
+            if (formClass === 'form-cargo-type') {
+                const existingInputs = container.querySelectorAll('.cargo-name-input');
+                existingInputs.forEach(input => {
+                    input.addEventListener('input', updateCargoTypesList); // обработчик изменения полей наименования груза
+                });
+            }
         }
 
         function createBigDynamicForm(containerId, addButtonId, type) {
@@ -167,7 +213,8 @@
                     <div class="cargo-list">
                         <div class="cargo-item">
                             <div class="cargo-item-specification">
-                                <input type="text" placeholder="Тип груза">
+                                <input type="text" placeholder="Тип груза" class="cargo-type-input" list="cargo-types-list">
+                                <datalist id="cargo-types-list"></datalist>
                                 <input type="text" placeholder="Количество">
                             </div>
                             <div class="cargo-item-buttons">
@@ -218,7 +265,8 @@
                 newCargoItem.classList.add('cargo-item');
                 newCargoItem.innerHTML = `
                     <div class="cargo-item-specification">
-                        <input type="text" placeholder="Тип груза">
+                        <input type="text" placeholder="Тип груза" class="cargo-type-input" list="cargo-types-list">
+                        <datalist id="cargo-types-list"></datalist>
                         <input type="text" placeholder="Количество">
                     </div>
                     <div class="cargo-item-buttons">
@@ -244,6 +292,8 @@
         createLittleDynamicForm('form-truck-type', 'form-truck-type', 'add-form-truck-type', 'Грузоподъемность/т');
         createBigDynamicForm('container-warehouse', 'add-warehouse', 'warehouse');
         createBigDynamicForm('container-destination', 'add-destination', 'destination');
+
+        updateCargoTypesList();
     </script>
 </body>
 </html>
