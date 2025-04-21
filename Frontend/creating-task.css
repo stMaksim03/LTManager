@@ -99,6 +99,10 @@ input[list="cargo-types-list"]::-webkit-calendar-picker-indicator {
     background-color: #d7d7d7;
 }
 
+.form button:active {
+    background-color: #c0c0c0;
+}
+
 .bin::before {
     content: "\1F5D1";
     margin-right: 5px;
