@@ -122,6 +122,11 @@ input[list="cargo-types-list"]::-webkit-calendar-picker-indicator {
     color: #8b8b8b;
 }
 
+.add-form-button:active {
+    background-color: #c0c0c0;
+    color: #828282;
+}
+
 .cargo-item-buttons button {
     border: none;
     border-radius: 3px;
@@ -142,14 +147,19 @@ input[list="cargo-types-list"]::-webkit-calendar-picker-indicator {
     width: 100%;
     padding: 8px;
     margin-top: 10px;
-    background-color: #d0d0d0;
+    background-color: #e0e0e0;
+    color: #656565;
     border: none;
     border-radius: 3px;
     cursor: pointer;
 }
 
 .remove-warehouse:hover, .remove-destination:hover {
-    background-color: #b6b6b6;
+    background-color: #cfcfcf;
+}
+
+.remove-warehouse:active, .remove-destination:active {
+    background-color: #bbbbbb;
 }
 
 @media (max-width: 450px) {

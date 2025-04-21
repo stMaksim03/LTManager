@@ -1,0 +1,33 @@
+.main-container {
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    flex-direction: column;
+}
+
+h1 {
+    color: rgb(151, 151, 151);
+    font-size: 25px;
+    margin: 40px;
+}
+
+.method-btn {
+    border: none;
+    border-radius: 7px;
+    background-color: #eaeaea;
+    color: #777777;
+    padding: 10px;
+    margin: 7px;
+    font-size: 15px;
+    width: 200px;
+}
+
+.method-btn:hover {
+    background-color: #dedede;
+    color: #8a8a8a;
+}
+
+.method-btn:active {
+    background-color: #c2c2c2;
+    color: #858585;
+}
