@@ -29,41 +29,42 @@
     <main>
         <h1>Создание задачи</h1>
 
-            <div class="types">
-                <div class="container">
-                    <h2>Типы грузов</h2>
-                    <div id="container-cargo-type">
-                      <div class="form" class="form-cargo-type" id="form-cargo-type-0">
-                          <input type="text" placeholder="Наименование груза" class="cargo-name-input">
-                          <input type="text" placeholder="Вес/ед">
-                          <button class="bin remove-form-cargo-type"></button>
-                      </div>
+        <div class="types">
+            <form class="container">
+                <h2>Типы грузов</h2>
+                <div id="container-cargo-type">
+                    <div class="form form-cargo-type" id="form-cargo-type-0">
+                        <input type="text" placeholder="Наименование груза" class="cargo-name-input">
+                        <input type="text" placeholder="Вес/ед">
+                        <button type="button" class="bin remove-form-cargo-type"></button>
                     </div>
-                    <button class="add-form-button" class="add-form-cargo-type" id="add-form-cargo-type">Добавить еще</button>
                 </div>
-                
-                <div class="container">
-                    <h2>Типы машин</h2>
-                    <div id="form-truck-type">
-                      <div class="form" class="form-truck-type" id="form-truck-type-0">
-                          <input type="text" placeholder="Наименование">
-                          <input type="text" placeholder="Грузоподъемность/т">
-                          <button class="bin remove-form-truck-type"></button>
-                      </div>
+                <button type="button" class="add-form-button" class="add-form-cargo-type" id="add-form-cargo-type">Добавить еще</button>
+            </form>
+            
+            <form class="container">
+                <h2>Типы машин</h2>
+                <div id="form-truck-type">
+                    <div class="form" class="form-truck-type" id="form-truck-type-0">
+                        <input type="text" placeholder="Наименование">
+                        <input type="text" placeholder="Грузоподъемность/т">
+                        <button type="button" class="bin remove-form-truck-type"></button>
                     </div>
-                    <button class="add-form-button" class="add-form-truck-type" id="add-form-truck-type">Добавить еще</button>
                 </div>
-            </div>
+                <button type="button" class="add-form-button" class="add-form-truck-type" id="add-form-truck-type">Добавить еще</button>
+            </form>
+        </div>
 
-            <div class="container">
+        <div class="types">
+            <form class="container">
                 <h2>Склады/отправка</h2>
                 <div id="container-warehouse">
-                  <div class="warehouse-form" id="warehouse-form-0">
-                      <div class="form form-place">
-                          <input type="text" placeholder="Название">
-                          <input type="text" placeholder="Адрес">
-                      </div>
-                      <div class="cargo-list">
+                    <div class="warehouse-form" id="warehouse-form-0">
+                        <div class="form form-place">
+                            <input type="text" placeholder="Название">
+                            <input type="text" placeholder="Адрес">
+                        </div>
+                        <div class="cargo-list">
                         <div class="cargo-item">
                             <div class="cargo-item-specification">
                                 <input type="text" placeholder="Тип груза" class="cargo-type-input" list="cargo-types-list">
@@ -71,26 +72,26 @@
                                 <input type="text" placeholder="Количество">
                             </div>
                             <div class="cargo-item-buttons">
-                              <button class="add-cargo">Добавить груз</button>
-                              <button class="remove-cargo">Удалить груз</button>
-                          </div>
+                                <button type="button" class="add-cargo">Добавить груз</button>
+                                <button type="button" class="remove-cargo">Удалить груз</button>
+                            </div>
                         </div>
-                      </div>
-                      <button class="remove-warehouse">Удалить склад</button>
-                  </div>
+                        </div>
+                        <button type="button" class="remove-warehouse">Удалить склад</button>
+                    </div>
                 </div>
-                <button class="add-form-button" id="add-warehouse">Добавить еще</button>
-            </div>
+                <button type="button" class="add-form-button" id="add-warehouse">Добавить еще</button>
+            </form>
             
-            <div class="container">
+            <form class="container">
                 <h2>Пункты приема</h2>
                 <div id="container-destination">
-                  <div class="destination-form" id="destination-form-0">
-                      <div class="form form-place">
-                          <input type="text" placeholder="Название">
-                          <input type="text" placeholder="Адрес">
-                      </div>
-                      <div class="cargo-list">
+                    <div class="destination-form" id="destination-form-0">
+                        <div class="form form-place">
+                            <input type="text" placeholder="Название">
+                            <input type="text" placeholder="Адрес">
+                        </div>
+                        <div class="cargo-list">
                         <div class="cargo-item">
                             <div class="cargo-item-specification">
                                 <input type="text" placeholder="Тип груза" class="cargo-type-input" list="cargo-types-list">
@@ -98,16 +99,19 @@
                                 <input type="text" placeholder="Количество">
                             </div>
                             <div class="cargo-item-buttons">
-                              <button class="add-cargo">Добавить груз</button>
-                              <button class="remove-cargo">Удалить груз</button>
-                          </div>
+                                <button type="button" class="add-cargo">Добавить груз</button>
+                                <button type="button" class="remove-cargo">Удалить груз</button>
+                            </div>
                         </div>
-                      </div>
-                      <button class="remove-destination">Удалить пункт</button>
-                  </div>
+                        </div>
+                        <button type="button" class="remove-destination">Удалить пункт</button>
+                    </div>
                 </div>
-                <button class="add-form-button" id="add-destination">Добавить еще</button>
-            </div>
+                <button type="button" class="add-form-button" id="add-destination">Добавить еще</button>
+            </form>
+        </div>
+
+        <button type="submit" class="create-button">Создать задачу</button>
     </main>
 
     <!-- Подвал сайта -->
@@ -156,7 +160,7 @@
                 newForm.innerHTML = `
                     <input type="text" placeholder="Наименование" class="${nameInputClass}">
                     <input type="text" placeholder="${fillingLable}">
-                    <button class="bin remove-${formClass}"></button>
+                    <button type="button" class="bin remove-${formClass}"></button>
                 `;
                 container.appendChild(newForm);
 
@@ -218,12 +222,12 @@
                                 <input type="text" placeholder="Количество">
                             </div>
                             <div class="cargo-item-buttons">
-                                <button class="add-cargo">Добавить груз</button>
-                                <button class="remove-cargo">Удалить груз</button>
+                                <button type="button" class="add-cargo">Добавить груз</button>
+                                <button type="button" class="remove-cargo">Удалить груз</button>
                             </div>
                         </div>
                     </div>
-                    <button class="remove-${type}">Удалить ${type === 'warehouse' ? 'склад' : 'пункт'}</button>
+                    <button type="button" class="remove-${type}">Удалить ${type === 'warehouse' ? 'склад' : 'пункт'}</button>
                 `;
                 container.appendChild(newForm);
 
@@ -270,8 +274,8 @@
                         <input type="text" placeholder="Количество">
                     </div>
                     <div class="cargo-item-buttons">
-                        <button class="add-cargo">Добавить груз</button>
-                        <button class="remove-cargo">Удалить груз</button>
+                        <button type="button" class="add-cargo">Добавить груз</button>
+                        <button type="button" class="remove-cargo">Удалить груз</button>
                     </div>
                 `;
                 cargoList.appendChild(newCargoItem);

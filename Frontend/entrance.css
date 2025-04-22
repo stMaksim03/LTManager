@@ -37,6 +37,10 @@ button:hover {
     background-color: #15d193;
 }
 
+button:active {
+    background-color: rgba(19, 185, 130, 0.527);
+}
+
 .form-container {
     display: none; /* Скрываем формы по умолчанию */
 }
@@ -64,6 +68,17 @@ div > a {
 div > a:hover {
     text-decoration: underline;
     cursor: pointer;
+}
+
+.error-message {
+    color: #ff0000;
+    font-size: 12px;
+    margin-top: 5px;
+    display: block;
+}
+
+input.error {
+    border: 1px solid #ff0000;
 }
 
 @media (max-width: 450px) {

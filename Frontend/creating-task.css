@@ -1,5 +1,8 @@
 main {
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 h1 {
@@ -164,6 +167,26 @@ input[list="cargo-types-list"]::-webkit-calendar-picker-indicator {
 
 .remove-warehouse:active, .remove-destination:active {
     background-color: #bbbbbb;
+}
+
+.create-button {
+    display: inline-block;
+    background-color: #3b82f6;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 15px;
+    border: none;
+}
+
+.create-button:hover {
+    background-color: #3b83f6d7;
+}
+
+.create-button:active {
+    background-color: #3b83f6af;
 }
 
 @media (max-width: 450px) {
