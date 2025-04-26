@@ -19,6 +19,8 @@ nav {
     justify-content: space-between;
     align-items: center;
     height: 60px;
+    position: relative; /* добавляем */
+    z-index: 10; /* чтобы меню было выше */
 }
 
 /* Логотип */
@@ -34,6 +36,7 @@ nav {
     margin: 0;
     display: flex;
     gap: 25px; /* Расстояние между пунктами */
+    z-index: 20; /* меню будет выше всех */
 }
 
 .nav-menu li {
