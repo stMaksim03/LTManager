@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LTmanager</title>
+    <link rel="stylesheet" href="reset.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="uploading-file.css">
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Шапка сайта -->
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html"><img src="scr/logo.svg" alt="Логотип"></a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="entrance.html">Войти</a></li>
+                <li><a href="creating-task-method.html">Создать задачу</a></li>
+                <li><a href="#">О сервисе</a></li>
+            </ul>
+            <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+        </nav>
+    </header>
+
+    <!-- Основное содержимое -->
+    <main>
+        <div class="upload-container">
+            <h1>Прикрепить файл</h1>
+            <h2>Поддерживаемые форматы: .xlsx</h2>
+            
+            <div class="file-input-wrapper">
+                <input type="file" id="fileInput" class="file-input" accept=".xlsx">
+                <label for="fileInput" id="fileInputLabel" class="file-input-label">Выберите файл или перетащите его сюда</label>
+            </div>
+            
+            <div id="fileInfo" class="file-info">
+                <div class="file-info-text" id="fileInfoText"></div>
+                <a href="#" id="fileName" class="file-name" download></a>
+                <div class="file-size" id="fileSize"></div>
+            </div>
+
+            <button id="uploadBtn" class="upload-btn" disabled>Загрузить</button>
+        </div>
+    </main>
+
+    <!-- Подвал сайта -->
+    <footer>
+        <p>&copy; 2025 Все права защищены.</p>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            document.querySelector(".nav-menu").classList.toggle("active");
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('fileInput');
+            const fileInputLabel = document.getElementById('fileInputLabel');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const fileInfo = document.getElementById('fileInfo');
+            const fileName = document.getElementById('fileName');
+            const fileSize = document.getElementById('fileSize');  
+            const fileInfoText = document.getElementById('fileInfoText');
+            let currentFile = null;    
+
+            fileInput.addEventListener('change', function(e) {
+                    if (this.files && this.files.length > 0) {
+                        const file = this.files[0];
+                        
+                        if (!file.name.endsWith('.xlsx')) {
+                            alert('Пожалуйста, выберите файл с расширением .xlsx');
+                            this.value = '';
+                            return;
+                        }
+                        
+                        uploadBtn.disabled = false;
+                        
+                        fileInfoText.textContent = 'Выбранный файл:';
+                        fileName.textContent = file.name;
+                        fileName.href = URL.createObjectURL(file);
+                        fileName.download = file.name;
+                        fileSize.textContent = formatFileSize(file.size);
+                        fileInfo.style.display = 'block';
+                }
+            });
+            
+            uploadBtn.addEventListener('click', function() {
+                    if (fileInput.files && fileInput.files.length > 0) {
+                        alert('Файл успешно загружен!');
+
+                        fileInfoText.textContent = 'Загруженный файл:';
+                        uploadBtn.disabled = true;
+                }
+            });
+
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+        });
+    </script>
+
+</body>
+</html>

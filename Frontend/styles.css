@@ -7,6 +7,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    overflow-x: hidden;
 }
 
 /* Навигационная панель */
@@ -71,13 +72,16 @@ footer {
     font-size: 20px; /* Увеличенный размер шрифта */
     color: black; /* Темный цвет текста */
     margin-top: auto;
-    width: 100%;
 }
 
 
 
 /* Адаптивный дизайн */
 @media (max-width: 768px) {
+    body {
+        overflow-x: hidden;
+    }
+
     .nav-menu {
         display: none;
         flex-direction: column;

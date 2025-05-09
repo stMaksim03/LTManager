@@ -30,7 +30,7 @@
         <div class="main-container">
             <h1>Выберите способ ввода данных:</h1>
             <button class="method-btn" onclick="document.location='creating-task.html'">Заполнить форму</button>
-            <button class="method-btn">Загрузить файл</button>
+            <button class="method-btn" onclick="document.location='uploading-file.html'">Загрузить файл</button>
             <button class="method-btn">Перейти в архив</button>
         </div>
     </main>
@@ -39,5 +39,11 @@
     <footer>
         <p>&copy; 2025 Все права защищены.</p>
     </footer>
+
+    <script>
+        function toggleMenu() {
+            document.querySelector(".nav-menu").classList.toggle("active");
+        }
+    </script>
 </body>
 </html>

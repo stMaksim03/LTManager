@@ -154,6 +154,7 @@ h3 {
 @media (max-width: 768px) {
     body {
         padding: 20px;
+        overflow-x: hidden;
     }
     
     .container {
