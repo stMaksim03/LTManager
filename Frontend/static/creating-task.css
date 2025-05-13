@@ -96,6 +96,7 @@ input[list="cargo-types-list"]::-webkit-calendar-picker-indicator {
     border: none;
     cursor: pointer;
     border-radius: 3px;
+    padding-left: 12px;
 }
 
 .form button:hover {

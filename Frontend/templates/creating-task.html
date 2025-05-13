@@ -45,8 +45,8 @@
             
             <form class="container">
                 <h2>Типы машин</h2>
-                <div id="form-truck-type">
-                    <div class="form" class="form-truck-type" id="form-truck-type-0">
+                <div id="container-truck-type">
+                    <div class="form form-truck-type" id="form-truck-type-0">
                         <input type="text" placeholder="Наименование">
                         <input type="text" placeholder="Грузоподъемность/т">
                         <button type="button" class="bin remove-form-truck-type"></button>
@@ -294,7 +294,7 @@
         }
 
         createLittleDynamicForm('container-cargo-type', 'form-cargo-type', 'add-form-cargo-type', 'Вес/кг (за ед.)');
-        createLittleDynamicForm('form-truck-type', 'form-truck-type', 'add-form-truck-type', 'Грузоподъемность/т');
+        createLittleDynamicForm('container-truck-type', 'form-truck-type', 'add-form-truck-type', 'Грузоподъемность/т');
         createBigDynamicForm('container-warehouse', 'add-warehouse', 'warehouse');
         createBigDynamicForm('container-destination', 'add-destination', 'destination');
 
@@ -328,6 +328,13 @@
                     return {
                         name: inputs[0].value,
                         weight: inputs[1].value
+                    };
+                }),
+                trucks: Array.from(document.querySelectorAll('.form-truck-type')).map(form => {
+                    const inputs = form.querySelectorAll('input');
+                    return {
+                        name: inputs[0].value,
+                        capacity: inputs[1].value
                     };
                 }),
                 warehouses: Array.from(document.querySelectorAll('.warehouse-form')).map(warehouse => {

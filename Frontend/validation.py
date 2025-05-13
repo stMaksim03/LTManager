@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 CORS(app)
 
 
@@ -14,10 +15,18 @@ def index():
 def static_files(filename):
     return render_template(f'/{filename}')
 
+data_storage = {}
 
 @app.route('/validate', methods=['POST'])
 def validate_form():
     try:
+        global data_storage
+        data_storage = {
+            'trucks': [],
+            'warehouses': [],
+            'destinations': []
+        }
+
         data = request.get_json()
         
         # Проверка заполненности всех полей
@@ -32,10 +41,25 @@ def validate_form():
         if not validate_unique_names(data):
             return jsonify({'success': False, 'message': 'Названия должны быть уникальными в пределах каждой формы'}), 400
         
-        return jsonify({'success': True, 'redirect': '/index.html'}), 200
+        data_storage['trucks'] = data.get('trucks', [])
+        data_storage['warehouses'] = data.get('warehouses', [])
+        data_storage['destinations'] = data.get('destinations', [])
+        
+        return jsonify({'success': True, 'redirect': '/itinerary.html'}), 200   
     
     except Exception as e:
         return jsonify({'success': False, 'message': f'Ошибка сервера: {str(e)}'}), 500
+
+
+@app.route('/data')
+def get_data():
+    global data_storage
+
+    return jsonify({
+        'trucks': data_storage['trucks'],
+        'warehouses': data_storage['warehouses'],
+        'destinations': data_storage['destinations']
+    })
 
 
 def all_fields_filled(data):
@@ -43,6 +67,11 @@ def all_fields_filled(data):
     # типы грузов
     for cargo in data['cargo_types']:
         if not cargo['name'] or not cargo['weight']:
+            return False
+        
+    # типы машин
+    for truck in data['trucks']:
+        if not truck['name'] or not truck['capacity']:
             return False
     
     # склады

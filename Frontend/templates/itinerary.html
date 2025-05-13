@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LTmanager</title>
+    <link rel="stylesheet" href="/static/reset.css">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/itinerary.css">
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Шапка сайта -->
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html"><img src="/static/scr/logo.svg" alt="Логотип"></a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="entrance.html">Войти</a></li>
+                <li><a href="creating-task-method.html">Создать задачу</a></li>
+                <li><a href="#">О сервисе</a></li>
+            </ul>
+            <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+        </nav>
+    </header>
+
+    <!-- Основное содержимое -->
+    <div class="route">
+        <aside class="sidebar">
+            <h2>Маршрут</h2>
+            <ul id="address-list" class="list">
+            </ul>
+        </aside>
+
+        <div class="route-content">
+            <h2>Карта маршрута</h2>
+            <div class="map-placeholder">
+                <p>Здесь будет карта</p>
+            </div>
+        </div>
+    </div>
+
+    <main class="map-container">
+        <div class="statistics">
+            <h2>Статистические данные</h2>
+            <ul class="list">
+                <li id="path-length">Длина пути: ...</li>
+                <li id="warehouse-count">Количество складов: ...</li>
+                <li id="destination-count">Количество пунктов приема: ...</li>
+                <li id="truck-count">Количество машин: ...</li>
+                <li id="total-cost">Суммарные затраты на доставку: ...</li>
+            </ul>
+        </div>
+        <div class="buttons">
+            <button id="edit-button">Вернуться к редактированию</button>
+            <button id="save-button">Сохранить задачу</button>
+        </div>
+    </main>
+
+        <!-- Подвал сайта -->
+    <footer>
+        <p>&copy; 2025 Все права защищены.</p>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            document.querySelector(".nav-menu").classList.toggle("active");
+        }
+
+        fetch('http://localhost:5000/data')
+            .then(response => response.json())
+            .then(data => {
+                console.log(data)
+                const { warehouses, destinations, trucks } = data;
+                let pathLength = '...';
+                let totalCost = '...';
+
+                const addressList = document.getElementById('address-list');
+                warehouses.forEach(warehouse => {
+                    const li = document.createElement('li');
+                    li.textContent = `${warehouse.name}: ${warehouse.address}`;
+                    addressList.appendChild(li);
+                });
+
+                destinations.forEach(destination => {
+                    const li = document.createElement('li');
+                    li.textContent = `${destination.name}: ${destination.address}`;
+                    addressList.appendChild(li);
+                });
+
+                document.getElementById('path-length').textContent = `Длина пути: ${pathLength}`;
+                document.getElementById('warehouse-count').textContent = `Количество складов: ${warehouses.length}`;
+                document.getElementById('destination-count').textContent = `Количество пунктов приема: ${destinations.length}`;
+                document.getElementById('truck-count').textContent = `Количество машин: ${trucks.length}`;
+                document.getElementById('total-cost').textContent = `Суммарные затраты на доставку: ${totalCost}`;
+            })
+            .catch(error => console.error('Error fetching data:', error));
+
+        document.getElementById('edit-button').addEventListener('click', () => {
+            window.location.href = "creating-task.html";
+        });
+
+        document.getElementById('save-button').addEventListener('click', () => {
+            window.location.href = "index.html";
+        });
+    </script>
