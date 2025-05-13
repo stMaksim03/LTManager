@@ -4,17 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LTmanager</title>
-    <link rel="stylesheet" href="reset.css">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="creating-task.css">
+    <link rel="stylesheet" href="/static/reset.css">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/creating-task.css">
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
     <!-- Шапка сайта -->
     <header>
         <nav>
             <div class="logo">
-                <a href="index.html"><img src="scr/logo.svg" alt="Логотип"></a>
+                <a href="index.html"><img src="/static/scr/logo.svg" alt="Логотип"></a>
             </div>
             <ul class="nav-menu">
                 <li><a href="entrance.html">Войти</a></li>
@@ -35,7 +36,7 @@
                 <div id="container-cargo-type">
                     <div class="form form-cargo-type" id="form-cargo-type-0">
                         <input type="text" placeholder="Наименование груза" class="cargo-name-input">
-                        <input type="text" placeholder="Вес/ед">
+                        <input type="text" placeholder="Вес/кг (за ед.)">
                         <button type="button" class="bin remove-form-cargo-type"></button>
                     </div>
                 </div>
@@ -111,7 +112,7 @@
             </form>
         </div>
 
-        <button type="submit" class="create-button">Создать задачу</button>
+        <button type="submit" class="create-button">Проверить условие</button>
     </main>
 
     <!-- Подвал сайта -->
@@ -292,12 +293,87 @@
             }
         }
 
-        createLittleDynamicForm('container-cargo-type', 'form-cargo-type', 'add-form-cargo-type', 'Вес/ед');
+        createLittleDynamicForm('container-cargo-type', 'form-cargo-type', 'add-form-cargo-type', 'Вес/кг (за ед.)');
         createLittleDynamicForm('form-truck-type', 'form-truck-type', 'add-form-truck-type', 'Грузоподъемность/т');
         createBigDynamicForm('container-warehouse', 'add-warehouse', 'warehouse');
         createBigDynamicForm('container-destination', 'add-destination', 'destination');
 
         updateCargoTypesList();
+
+
+        document.querySelector('.create-button').addEventListener('click', async function() {
+            const formData = collectFormData();
+            
+            try {
+                const response = await axios.post('http://localhost:5000/validate', JSON.stringify(formData), {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.data.success) {
+                    window.location.href = response.data.redirect || '/index.html';
+                } else {
+                    alert(`Ошибка валидации: ${response.data.message}`);
+                }
+            } catch (error) {
+                handleRequestError(error);
+            }
+        });
+
+        function collectFormData() {
+            return {
+                cargo_types: Array.from(document.querySelectorAll('.form-cargo-type')).map(form => {
+                    const inputs = form.querySelectorAll('input');
+                    return {
+                        name: inputs[0].value,
+                        weight: inputs[1].value
+                    };
+                }),
+                warehouses: Array.from(document.querySelectorAll('.warehouse-form')).map(warehouse => {
+                    const inputs = warehouse.querySelectorAll('.form-place input');
+                    return {
+                        name: inputs[0].value,
+                        address: inputs[1].value,
+                        cargos: Array.from(warehouse.querySelectorAll('.cargo-item')).map(cargo => {
+                            const cargoInputs = cargo.querySelectorAll('.cargo-item-specification input');
+                            return {
+                                type: cargoInputs[0].value,
+                                quantity: cargoInputs[1].value
+                            };
+                        })
+                    };
+                }),
+                destinations: Array.from(document.querySelectorAll('.destination-form')).map(destination => {
+                    const inputs = destination.querySelectorAll('.form-place input');
+                    return {
+                        name: inputs[0].value,
+                        address: inputs[1].value,
+                        cargos: Array.from(destination.querySelectorAll('.cargo-item')).map(cargo => {
+                            const cargoInputs = cargo.querySelectorAll('.cargo-item-specification input');
+                            return {
+                                type: cargoInputs[0].value,
+                                quantity: cargoInputs[1].value
+                            };
+                        })
+                    };
+                })
+            };
+        }
+
+        function handleRequestError(error) {
+            if (error.response) {
+                const { data, status } = error.response;
+                console.error('Ошибка сервера:', status, data);
+                alert(`Ошибка сервера (${status}): ${data.message || 'Неизвестная ошибка'}`);
+            } else if (error.request) {
+                console.error('Нет ответа от сервера:', error.request);
+                alert('Не удалось получить ответ от сервера. Проверьте подключение к интернету.');
+            } else {
+                console.error('Ошибка настройки запроса:', error.message);
+                alert('Ошибка при отправке формы: ' + error.message);
+            }
+        }
     </script>
 </body>
 </html>
