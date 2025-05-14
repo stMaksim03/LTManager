@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/static/creating-task.css">
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
 </head>
 <body>
     <!-- Шапка сайта -->
@@ -66,17 +67,17 @@
                             <input type="text" placeholder="Адрес">
                         </div>
                         <div class="cargo-list">
-                        <div class="cargo-item">
-                            <div class="cargo-item-specification">
-                                <input type="text" placeholder="Тип груза" class="cargo-type-input" list="cargo-types-list">
-                                <datalist id="cargo-types-list"></datalist>
-                                <input type="text" placeholder="Количество">
+                            <div class="cargo-item">
+                                <div class="cargo-item-specification">
+                                    <input type="text" placeholder="Тип груза" class="cargo-type-input" list="cargo-types-list">
+                                    <datalist id="cargo-types-list"></datalist>
+                                    <input type="text" placeholder="Количество">
+                                </div>
+                                <div class="cargo-item-buttons">
+                                    <button type="button" class="add-cargo">Добавить груз</button>
+                                    <button type="button" class="remove-cargo">Удалить груз</button>
+                                </div>
                             </div>
-                            <div class="cargo-item-buttons">
-                                <button type="button" class="add-cargo">Добавить груз</button>
-                                <button type="button" class="remove-cargo">Удалить груз</button>
-                            </div>
-                        </div>
                         </div>
                         <button type="button" class="remove-warehouse">Удалить склад</button>
                     </div>
@@ -93,17 +94,17 @@
                             <input type="text" placeholder="Адрес">
                         </div>
                         <div class="cargo-list">
-                        <div class="cargo-item">
-                            <div class="cargo-item-specification">
-                                <input type="text" placeholder="Тип груза" class="cargo-type-input" list="cargo-types-list">
-                                <datalist id="cargo-types-list"></datalist>
-                                <input type="text" placeholder="Количество">
+                            <div class="cargo-item">
+                                <div class="cargo-item-specification">
+                                    <input type="text" placeholder="Тип груза" class="cargo-type-input" list="cargo-types-list">
+                                    <datalist id="cargo-types-list"></datalist>
+                                    <input type="text" placeholder="Количество">
+                                </div>
+                                <div class="cargo-item-buttons">
+                                    <button type="button" class="add-cargo">Добавить груз</button>
+                                    <button type="button" class="remove-cargo">Удалить груз</button>
+                                </div>
                             </div>
-                            <div class="cargo-item-buttons">
-                                <button type="button" class="add-cargo">Добавить груз</button>
-                                <button type="button" class="remove-cargo">Удалить груз</button>
-                            </div>
-                        </div>
                         </div>
                         <button type="button" class="remove-destination">Удалить пункт</button>
                     </div>
@@ -112,7 +113,10 @@
             </form>
         </div>
 
-        <button type="submit" class="create-button">Проверить условие</button>
+        <div>
+            <button type="submit" class="clear-button">Очистить формы</button>
+            <button type="submit" class="check-button">Проверить условие</button>
+        </div>
     </main>
 
     <!-- Подвал сайта -->
@@ -125,11 +129,23 @@
             document.querySelector(".nav-menu").classList.toggle("active");
         }
 
+        // Функции для работы с cookies
+        function saveFormDataToCookies() {
+            const formData = collectFormData();
+            Cookies.set('formData', JSON.stringify(formData), { expires: 1 }); // Сохраняем на 1 день
+        }
+
+        function loadFormDataFromCookies() {
+            const savedData = Cookies.get('formData');
+            if (savedData) {
+                return JSON.parse(savedData);
+            }
+            return null;
+        }
+
         function updateCargoTypesList() {
             const cargoNameInputs = document.querySelectorAll('.cargo-name-input');
-            const cargoTypesList = document.getElementById('cargo-types-list');
-            
-            cargoTypesList.innerHTML = '';
+            const cargoTypesLists = document.querySelectorAll('#cargo-types-list');
             
             const cargoTypes = new Set();
             cargoNameInputs.forEach(input => {
@@ -138,17 +154,103 @@
                 }
             });
             
-            cargoTypes.forEach(type => {
-                const option = document.createElement('option');
-                option.value = type;
-                cargoTypesList.appendChild(option);
+            cargoTypesLists.forEach(list => {
+                list.innerHTML = '';
+                cargoTypes.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type;
+                    list.appendChild(option);
+                });
             });
         }
 
-        function createLittleDynamicForm(containerId, formClass, addButtonId, fillingLable) {
+        function createLittleDynamicForm(containerId, formClass, addButtonId, fillingLable, initialData = []) {
             const container = document.getElementById(containerId);
             const addButton = document.getElementById(addButtonId);
-            let formCount = 1;
+            let formCount = initialData.length || 1;
+
+            // Очищаем контейнер перед восстановлением данных
+            container.innerHTML = '';
+
+            // Восстанавливаем сохраненные формы или создаем начальную
+            if (initialData.length > 0) {
+                initialData.forEach((data, index) => {
+                    const newForm = document.createElement('div');
+                    newForm.classList.add('form', formClass);
+                    newForm.id = `${formClass}-${index}`;
+                    
+                    const isCargoType = formClass === 'form-cargo-type';
+                    const nameInputClass = isCargoType ? 'cargo-name-input' : '';
+                    
+                    newForm.innerHTML = `
+                        <input type="text" placeholder="Наименование" class="${nameInputClass}" value="${data.name || ''}">
+                        <input type="text" placeholder="${fillingLable}" value="${data.weight || data.capacity || ''}">
+                        <button type="button" class="bin remove-${formClass}"></button>
+                    `;
+                    container.appendChild(newForm);
+
+                    // Добавляем обработчики
+                    const removeButton = newForm.querySelector(`.remove-${formClass}`);
+                    removeButton.addEventListener('click', () => {
+                        container.removeChild(newForm);
+                        if (isCargoType) {
+                            updateCargoTypesList();
+                        }
+                        saveFormDataToCookies();
+                    });
+
+                    if (isCargoType) {
+                        const nameInput = newForm.querySelector('.cargo-name-input');
+                        nameInput.addEventListener('input', () => {
+                            updateCargoTypesList();
+                            saveFormDataToCookies();
+                        });
+                    }
+
+                    const inputs = newForm.querySelectorAll('input');
+                    inputs.forEach(input => {
+                        input.addEventListener('input', saveFormDataToCookies);
+                    });
+                });
+            } else {
+                // Создаем начальную форму, если нет сохраненных данных
+                const newForm = document.createElement('div');
+                newForm.classList.add('form', formClass);
+                newForm.id = `${formClass}-0`;
+                
+                const isCargoType = formClass === 'form-cargo-type';
+                const nameInputClass = isCargoType ? 'cargo-name-input' : '';
+                
+                newForm.innerHTML = `
+                    <input type="text" placeholder="Наименование" class="${nameInputClass}">
+                    <input type="text" placeholder="${fillingLable}">
+                    <button type="button" class="bin remove-${formClass}"></button>
+                `;
+                container.appendChild(newForm);
+
+                // Добавляем обработчики
+                const removeButton = newForm.querySelector(`.remove-${formClass}`);
+                removeButton.addEventListener('click', () => {
+                    container.removeChild(newForm);
+                    if (isCargoType) {
+                        updateCargoTypesList();
+                    }
+                    saveFormDataToCookies();
+                });
+
+                if (isCargoType) {
+                    const nameInput = newForm.querySelector('.cargo-name-input');
+                    nameInput.addEventListener('input', () => {
+                        updateCargoTypesList();
+                        saveFormDataToCookies();
+                    });
+                }
+
+                const inputs = newForm.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.addEventListener('input', saveFormDataToCookies);
+                });
+            }
 
             addButton.addEventListener('click', () => {
                 const newForm = document.createElement('div');
@@ -165,46 +267,167 @@
                 `;
                 container.appendChild(newForm);
 
-                // обработчики для новых создаваемых форм
+                // Добавляем обработчики
                 const removeButton = newForm.querySelector(`.remove-${formClass}`);
                 removeButton.addEventListener('click', () => {
                     container.removeChild(newForm);
                     if (isCargoType) {
-                        updateCargoTypesList(); // обновление списка при удалении
+                        updateCargoTypesList();
                     }
+                    saveFormDataToCookies();
                 });
 
                 if (isCargoType) {
                     const nameInput = newForm.querySelector('.cargo-name-input');
-                    nameInput.addEventListener('input', updateCargoTypesList); // обработчик изменения полей наименования груза
+                    nameInput.addEventListener('input', () => {
+                        updateCargoTypesList();
+                        saveFormDataToCookies();
+                    });
                 }
+
+                const inputs = newForm.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.addEventListener('input', saveFormDataToCookies);
+                });
 
                 formCount++;
+                saveFormDataToCookies();
             });
-
-            // обработчики для начальных форм
-            container.addEventListener('click', (event) => {
-                if (event.target.classList.contains(`remove-${formClass}`)) {
-                    const formBlock = event.target.parentNode;
-                    container.removeChild(formBlock);
-                    if (formClass === 'form-cargo-type') {
-                        updateCargoTypesList(); // обновление списка при удалении
-                    }
-                }
-            });
-
-            if (formClass === 'form-cargo-type') {
-                const existingInputs = container.querySelectorAll('.cargo-name-input');
-                existingInputs.forEach(input => {
-                    input.addEventListener('input', updateCargoTypesList); // обработчик изменения полей наименования груза
-                });
-            }
         }
 
-        function createBigDynamicForm(containerId, addButtonId, type) {
+        function createBigDynamicForm(containerId, addButtonId, type, initialData = []) {
             const container = document.getElementById(containerId);
             const addButton = document.getElementById(addButtonId);
-            let formCount = 1;
+            let formCount = initialData.length || 1;
+
+            // Очищаем контейнер перед восстановлением данных
+            container.innerHTML = '';
+
+            // Восстанавливаем сохраненные формы или создаем начальную
+            if (initialData.length > 0) {
+                initialData.forEach((data, index) => {
+                    const newForm = document.createElement('div');
+                    newForm.classList.add(`${type}-form`);
+                    newForm.id = `${type}-form-${index}`;
+                    
+                    let cargosHTML = '';
+                    if (data.cargos && data.cargos.length > 0) {
+                        data.cargos.forEach((cargo, cargoIndex) => {
+                            cargosHTML += `
+                                <div class="cargo-item">
+                                    <div class="cargo-item-specification">
+                                        <input type="text" placeholder="Тип груза" class="cargo-type-input" list="cargo-types-list" value="${cargo.type || ''}">
+                                        <datalist id="cargo-types-list"></datalist>
+                                        <input type="text" placeholder="Количество" value="${cargo.quantity || ''}">
+                                    </div>
+                                    <div class="cargo-item-buttons">
+                                        <button type="button" class="add-cargo">Добавить груз</button>
+                                        <button type="button" class="remove-cargo">Удалить груз</button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        cargosHTML = `
+                            <div class="cargo-item">
+                                <div class="cargo-item-specification">
+                                    <input type="text" placeholder="Тип груза" class="cargo-type-input" list="cargo-types-list">
+                                    <datalist id="cargo-types-list"></datalist>
+                                    <input type="text" placeholder="Количество">
+                                </div>
+                                <div class="cargo-item-buttons">
+                                    <button type="button" class="add-cargo">Добавить груз</button>
+                                    <button type="button" class="remove-cargo">Удалить груз</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    newForm.innerHTML = `
+                        <div class="form form-place">
+                            <input type="text" placeholder="Название" value="${data.name || ''}">
+                            <input type="text" placeholder="Адрес" value="${data.address || ''}">
+                        </div>
+                        <div class="cargo-list">
+                            ${cargosHTML}
+                        </div>
+                        <button type="button" class="remove-${type}">Удалить ${type === 'warehouse' ? 'склад' : 'пункт'}</button>
+                    `;
+                    container.appendChild(newForm);
+
+                    // Добавляем обработчики
+                    const addCargoButtons = newForm.querySelectorAll('.add-cargo');
+                    const removeCargoButtons = newForm.querySelectorAll('.remove-cargo');
+
+                    addCargoButtons.forEach(btn => {
+                        btn.addEventListener('click', addCargoItem);
+                    });
+
+                    removeCargoButtons.forEach(btn => {
+                        btn.addEventListener('click', removeCargoItem);
+                    });
+
+                    const removeButton = newForm.querySelector(`.remove-${type}`);
+                    removeButton.addEventListener('click', () => {
+                        container.removeChild(newForm);
+                        saveFormDataToCookies();
+                    });
+
+                    const inputs = newForm.querySelectorAll('input');
+                    inputs.forEach(input => {
+                        input.addEventListener('input', saveFormDataToCookies);
+                    });
+                });
+            } else {
+                // Создаем начальную форму, если нет сохраненных данных
+                const newForm = document.createElement('div');
+                newForm.classList.add(`${type}-form`);
+                newForm.id = `${type}-form-0`;
+                newForm.innerHTML = `
+                    <div class="form form-place">
+                        <input type="text" placeholder="Название">
+                        <input type="text" placeholder="Адрес">
+                    </div>
+                    <div class="cargo-list">
+                        <div class="cargo-item">
+                            <div class="cargo-item-specification">
+                                <input type="text" placeholder="Тип груза" class="cargo-type-input" list="cargo-types-list">
+                                <datalist id="cargo-types-list"></datalist>
+                                <input type="text" placeholder="Количество">
+                            </div>
+                            <div class="cargo-item-buttons">
+                                <button type="button" class="add-cargo">Добавить груз</button>
+                                <button type="button" class="remove-cargo">Удалить груз</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="remove-${type}">Удалить ${type === 'warehouse' ? 'склад' : 'пункт'}</button>
+                `;
+                container.appendChild(newForm);
+
+                // Добавляем обработчики
+                const addCargoButtons = newForm.querySelectorAll('.add-cargo');
+                const removeCargoButtons = newForm.querySelectorAll('.remove-cargo');
+
+                addCargoButtons.forEach(btn => {
+                    btn.addEventListener('click', addCargoItem);
+                });
+
+                removeCargoButtons.forEach(btn => {
+                    btn.addEventListener('click', removeCargoItem);
+                });
+
+                const removeButton = newForm.querySelector(`.remove-${type}`);
+                removeButton.addEventListener('click', () => {
+                    container.removeChild(newForm);
+                    saveFormDataToCookies();
+                });
+
+                const inputs = newForm.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.addEventListener('input', saveFormDataToCookies);
+                });
+            }
 
             addButton.addEventListener('click', () => {
                 const newForm = document.createElement('div');
@@ -232,6 +455,7 @@
                 `;
                 container.appendChild(newForm);
 
+                // Добавляем обработчики
                 const addCargoButtons = newForm.querySelectorAll('.add-cargo');
                 const removeCargoButtons = newForm.querySelectorAll('.remove-cargo');
 
@@ -243,25 +467,19 @@
                     btn.addEventListener('click', removeCargoItem);
                 });
 
+                const removeButton = newForm.querySelector(`.remove-${type}`);
+                removeButton.addEventListener('click', () => {
+                    container.removeChild(newForm);
+                    saveFormDataToCookies();
+                });
+
+                const inputs = newForm.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.addEventListener('input', saveFormDataToCookies);
+                });
+
                 formCount++;
-            });
-
-            container.addEventListener('click', (event) => {
-                if (event.target.classList.contains(`remove-${type}`)) {
-                    const formBlock = event.target.parentNode;
-                    container.removeChild(formBlock);
-                }
-            });
-
-            const addCargoButtons = container.querySelectorAll('.add-cargo');
-            const removeCargoButtons = container.querySelectorAll('.remove-cargo');
-
-            addCargoButtons.forEach(btn => {
-                btn.addEventListener('click', addCargoItem);
-            });
-
-            removeCargoButtons.forEach(btn => {
-                btn.addEventListener('click', removeCargoItem);
+                saveFormDataToCookies();
             });
 
             function addCargoItem(e) {
@@ -283,43 +501,23 @@
 
                 newCargoItem.querySelector('.add-cargo').addEventListener('click', addCargoItem);
                 newCargoItem.querySelector('.remove-cargo').addEventListener('click', removeCargoItem);
+
+                const inputs = newCargoItem.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.addEventListener('input', saveFormDataToCookies);
+                });
+
+                saveFormDataToCookies();
             }
 
             function removeCargoItem(e) {
                 const cargoItem = e.target.closest('.cargo-item');
                 if (cargoItem && cargoItem.parentElement.querySelectorAll('.cargo-item').length > 1) {
                     cargoItem.parentElement.removeChild(cargoItem);
+                    saveFormDataToCookies();
                 }
             }
         }
-
-        createLittleDynamicForm('container-cargo-type', 'form-cargo-type', 'add-form-cargo-type', 'Вес/кг (за ед.)');
-        createLittleDynamicForm('container-truck-type', 'form-truck-type', 'add-form-truck-type', 'Грузоподъемность/т');
-        createBigDynamicForm('container-warehouse', 'add-warehouse', 'warehouse');
-        createBigDynamicForm('container-destination', 'add-destination', 'destination');
-
-        updateCargoTypesList();
-
-
-        document.querySelector('.create-button').addEventListener('click', async function() {
-            const formData = collectFormData();
-            
-            try {
-                const response = await axios.post('http://localhost:5000/validate', JSON.stringify(formData), {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (response.data.success) {
-                    window.location.href = response.data.redirect || '/index.html';
-                } else {
-                    alert(`Ошибка валидации: ${response.data.message}`);
-                }
-            } catch (error) {
-                handleRequestError(error);
-            }
-        });
 
         function collectFormData() {
             return {
@@ -381,6 +579,70 @@
                 alert('Ошибка при отправке формы: ' + error.message);
             }
         }
+
+        // Инициализация страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedData = loadFormDataFromCookies();
+            
+            createLittleDynamicForm(
+                'container-cargo-type', 
+                'form-cargo-type', 
+                'add-form-cargo-type', 
+                'Вес/кг (за ед.)',
+                savedData ? savedData.cargo_types : []
+            );
+            
+            createLittleDynamicForm(
+                'container-truck-type', 
+                'form-truck-type', 
+                'add-form-truck-type', 
+                'Грузоподъемность/т',
+                savedData ? savedData.trucks : []
+            );
+            
+            createBigDynamicForm(
+                'container-warehouse', 
+                'add-warehouse', 
+                'warehouse',
+                savedData ? savedData.warehouses : []
+            );
+            
+            createBigDynamicForm(
+                'container-destination', 
+                'add-destination', 
+                'destination',
+                savedData ? savedData.destinations : []
+            );
+
+            updateCargoTypesList();
+
+            // Обработчик для кнопки создания задачи
+            document.querySelector('.check-button').addEventListener('click', async function() {
+                const formData = collectFormData();
+                
+                try {
+                    const response = await axios.post('http://localhost:5000/validate', JSON.stringify(formData), {
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.data.success) {
+                        window.location.href = response.data.redirect || '/index.html';
+                    } else {
+                        alert(`Ошибка валидации: ${response.data.message}`);
+                    }
+                } catch (error) {
+                    handleRequestError(error);
+                }
+            });
+        });
+
+        document.querySelector('.clear-button').addEventListener('click', function() {
+            // Удаляем cookies
+            Cookies.remove('formData');
+            location.reload(); // Полностью перезагружаем страницу для сброса всех счетчиков
+        });
     </script>
 </body>
 </html>
