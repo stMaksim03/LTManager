@@ -82,6 +82,52 @@ h3 {
     flex: 1;
 }
 
+.image-container {
+    position: relative;
+    width: 100%;
+    max-width: 700px;
+    margin: 20px 0;
+    padding: 10px;
+}
+
+.main-image {
+    width: 100%;
+    height: auto;
+    max-height: 350px;
+    object-fit: cover;
+    border-radius: 8px;
+    
+    /* Эффект размытия краёв */
+    box-shadow: 
+        0 0 15px 10px rgba(255, 255, 255, 0.8),
+        inset 0 0 20px 10px rgba(255, 255, 255, 0.6);
+    
+    mask-image: linear-gradient(
+        to right, 
+        transparent 0%, 
+        black 10%, 
+        black 90%, 
+        transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+        to right, 
+        transparent 0%, 
+        black 10%, 
+        black 90%, 
+        transparent 100%
+    );
+
+    transform: scale(0.98);
+    transition: transform 0.3s ease;
+}
+
+.main-image:hover {
+    transform: scale(1);
+    box-shadow: 
+        0 0 20px 12px rgba(255, 255, 255, 0.9),
+        inset 0 0 25px 12px rgba(255, 255, 255, 0.7);
+}
+
 .divider {
     height: 1px;
     background-color: #ddd;
@@ -163,5 +209,19 @@ h3 {
     
     .parameters-grid {
         grid-template-columns: 1fr;
+    }
+
+    .section {
+        flex-direction: column;
+    }
+    
+    .main-image {
+        max-height: 250px;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-image {
+        max-height: 200px;
     }
 }
