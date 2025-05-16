@@ -59,7 +59,6 @@ h1 {
 
 .cargo-list {
     margin-top: 10px;
-    flex-direction: column;
 }
 
 .cargo-item {
@@ -211,42 +210,43 @@ input[list="cargo-types-list"]::-webkit-calendar-picker-indicator {
 }
 
 @media (max-width: 450px) {
+    h1 {
+        margin-bottom: 0;
+    }
+
     .container {
-        width: 70%;
-        background-color: #dcdcdc8f;
+        width: 80%;
         padding: 20px;
         margin: 20px auto;
-        border-radius: 10px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     }
 
     .form {
-        background-color: white;
-        padding: 20px;
-        margin-top: 10px;
-        border-radius: 5px;
-        display: flex;
+        padding: 5px;
         flex-direction: column;
-        align-items: center;
     }
 
     .form input {
         flex-grow: 1;
         margin: 10px;
         padding: 10px;
-        border: none;
-        border-radius: 3px;
-        background-color: #efefef;
         width: 100%;
     }
 
-
-    .cargo-item {
-        flex-direction: column;
+    .form-cargo-type, .form-truck-type {
+        padding: 25px;
+    }
+    
+    .cargo-item-buttons {
+        flex-direction: row;
+        gap: 5px;
     }
 
-    .cargo-item input, .cargo-item button {
-        width: 100%;
-        margin: 5px 0;
+    .clear-button, .check-button {
+        margin: 10px 5px 20px 5px;
+    }  
+    
+    .bin {
+        width: 50%;
+        margin-bottom: 0;
     }
 }

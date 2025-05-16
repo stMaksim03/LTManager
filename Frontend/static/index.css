@@ -199,7 +199,6 @@ h3 {
 
 @media (max-width: 768px) {
     body {
-        padding: 20px;
         overflow-x: hidden;
     }
     
@@ -218,10 +217,26 @@ h3 {
     .main-image {
         max-height: 250px;
     }
+
+    .image-container {
+        margin: 5px;
+    }
 }
 
 @media (max-width: 480px) {
     .main-image {
         max-height: 200px;
+    }
+
+    .video-btn {
+        margin: 5px;
+    }
+
+    .try-btn {
+        margin: 5px;
+    }
+
+    .image-container {
+        margin: 5px;
     }
 }

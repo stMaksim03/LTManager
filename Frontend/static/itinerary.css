@@ -35,7 +35,7 @@ h2 {
 }
 
 .sidebar {
-    width: 300px;
+    width: 40%;
     background: #ffffff;
     border-right: 1px solid #dddddd;
     padding: 10px 0px;
@@ -104,4 +104,28 @@ button:active {
     position: absolute;
     left: 0;
     top: 8px;
+}
+
+@media (max-width: 600px) {
+    button {
+        padding: 12px 24px;
+        margin: 5px;
+    }
+
+    h2 {
+        text-align: center;
+    }
+
+    .sidebar {
+        border-right: none;
+        width: 100%;
+    }
+
+    .route-content {
+        width: 100%;
+    }
+
+    .route {
+        flex-direction: column;
+    }
 }
