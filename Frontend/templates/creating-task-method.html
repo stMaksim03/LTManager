@@ -1,49 +1,14 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LTmanager</title>
-    <link rel="stylesheet" href="/static/reset.css">
-    <link rel="stylesheet" href="/static/styles.css">
-    <link rel="stylesheet" href="/static/creating-task-method.css">
-    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;700&display=swap" rel="stylesheet">
-</head>
-<body>
-    <!-- Шапка сайта -->
-    <header>
-        <nav>
-            <div class="logo">
-                <a href="index.html"><img src="/static/scr/logo.svg" alt="Логотип"></a>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="entrance.html">Войти</a></li>
-                <li><a href="creating-task-method.html">Создать задачу</a></li>
-                <li><a href="#">О сервисе</a></li>
-            </ul>
-            <div class="menu-toggle" onclick="toggleMenu()">☰</div>
-        </nav>
-    </header>
+{% extends "base.html" %}
 
-    <!-- Основное содержимое -->
-    <main>
-        <div class="main-container">
-            <h1>Выберите способ ввода данных:</h1>
-            <button class="method-btn" onclick="document.location='creating-task.html'">Заполнить форму</button>
-            <button class="method-btn" onclick="document.location='uploading-file.html'">Загрузить файл</button>
-            <button class="method-btn">Перейти в архив</button>
-        </div>
-    </main>
+{% block extra_css %}
+    <link rel="stylesheet" href="/static/css/creating-task-method.css">
+{% endblock %}
 
-    <!-- Подвал сайта -->
-    <footer>
-        <p>&copy; 2025 Все права защищены.</p>
-    </footer>
-
-    <script>
-        function toggleMenu() {
-            document.querySelector(".nav-menu").classList.toggle("active");
-        }
-    </script>
-</body>
-</html>
+{% block content %}
+    <div class="main-container">
+        <h1>Выберите способ ввода данных:</h1>
+        <button class="method-btn" onclick="document.location='creating-task.html'">Заполнить форму</button>
+        <button class="method-btn" onclick="document.location='uploading-file.html'">Загрузить файл</button>
+        <button class="method-btn">Перейти в архив</button>
+    </div>
+{% endblock %}

@@ -1,44 +1,27 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LTmanager</title>
-    <link rel="stylesheet" href="/static/reset.css">
-    <link rel="stylesheet" href="/static/styles.css">
-    <link rel="stylesheet" href="/static/itinerary.css">
-    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
-</head>
-<body>
-    <!-- Шапка сайта -->
-    <header>
-        <nav>
-            <div class="logo">
-                <a href="index.html"><img src="/static/scr/logo.svg" alt="Логотип"></a>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="entrance.html">Войти</a></li>
-                <li><a href="creating-task-method.html">Создать задачу</a></li>
-                <li><a href="#">О сервисе</a></li>
-            </ul>
-            <div class="menu-toggle" onclick="toggleMenu()">☰</div>
-        </nav>
-    </header>
+{% extends "base.html" %}
 
-    <!-- Основное содержимое -->
+{% block extra_css %}
+    <link rel="stylesheet" href="/static/css/itinerary.css">
+{% endblock %}
+
+{% block extra_script %}
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=90edaf8f-93f2-46f8-b63e-29fdcd48f7e5&lang=ru_RU" type="text/javascript"></script>
+{% endblock %}
+
+{% block content %}
     <div class="route">
         <aside class="sidebar">
             <h2>Маршрут</h2>
-            <ul id="address-list" class="list">
+            <ul id="warehouse-list" class="list">
+            </ul>
+            <ul id="destination-list" class="list">
             </ul>
         </aside>
 
         <div class="route-content">
             <h2>Карта маршрута</h2>
-            <div class="map-placeholder">
-                <p>Здесь будет карта</p>
-            </div>
+            <div id="map"></div>
         </div>
     </div>
 
@@ -58,15 +41,61 @@
             <button id="save-button">Сохранить задачу</button>
         </div>
     </main>
+{% endblock %}
 
-        <!-- Подвал сайта -->
-    <footer>
-        <p>&copy; 2025 Все права защищены.</p>
-    </footer>
-
+{% block extra_js %}
     <script>
-        function toggleMenu() {
-            document.querySelector(".nav-menu").classList.toggle("active");
+        ymaps.ready(initMap);
+
+        function initMap() {
+            const map = new ymaps.Map('map', {
+                center: [55.76, 37.64], // Москва по умолчанию
+                zoom: 10
+            });
+
+            fetch('http://localhost:5000/data')
+                .then(response => response.json())
+                .then(data => {
+                    const { warehouses, destinations, trucks } = data;
+                    
+                    warehouses.forEach(warehouse => {
+                        geocodeAddress(warehouse.address, 'Склад: ' + warehouse.name, map, 'islands#blueIcon');
+                    });
+
+                    destinations.forEach(destination => {
+                        geocodeAddress(destination.address, 'Пункт выдачи: ' + destination.name, map, 'islands#redIcon');
+                    });
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+
+        // Функция для геокодирования адреса и добавления метки на карту
+        function geocodeAddress(address, title, map, iconStyle) {
+            ymaps.geocode(address, {
+                results: 1
+            }).then(function (res) {
+                const firstGeoObject = res.geoObjects.get(0);
+                if (firstGeoObject) {
+                    const coordinates = firstGeoObject.geometry.getCoordinates();
+                    
+                    const placemark = new ymaps.Placemark(
+                        coordinates,
+                        {
+                            hintContent: title,
+                            balloonContent: address
+                        },
+                        {
+                            preset: iconStyle
+                        }
+                    );
+                    
+                    map.geoObjects.add(placemark);
+                    
+                    if (map.geoObjects.getLength() === 1) {
+                        map.setCenter(coordinates);
+                    }
+                }
+            });
         }
 
         fetch('http://localhost:5000/data')
@@ -77,17 +106,18 @@
                 let pathLength = '...';
                 let totalCost = '...';
 
-                const addressList = document.getElementById('address-list');
+                const destinationList = document.getElementById('destination-list');
+                const warehouseList = document.getElementById('warehouse-list');
                 warehouses.forEach(warehouse => {
                     const li = document.createElement('li');
                     li.textContent = `${warehouse.name}: ${warehouse.address}`;
-                    addressList.appendChild(li);
+                    warehouseList.appendChild(li);
                 });
 
                 destinations.forEach(destination => {
                     const li = document.createElement('li');
                     li.textContent = `${destination.name}: ${destination.address}`;
-                    addressList.appendChild(li);
+                    destinationList.appendChild(li);
                 });
 
                 document.getElementById('path-length').textContent = `Длина пути: ${pathLength}`;
@@ -108,3 +138,4 @@
             window.location.href = "index.html";
         });
     </script>
+{% endblock %}

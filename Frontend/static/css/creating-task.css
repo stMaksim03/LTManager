@@ -209,6 +209,26 @@ input[list="cargo-types-list"]::-webkit-calendar-picker-indicator {
     background-color: #bbbbbb;
 }
 
+input[placeholder="Адрес"] {
+    position: relative;
+}
+
+input[placeholder="Адрес"]:hover::after,
+input[placeholder="Адрес"]:focus::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    white-space: nowrap;
+    z-index: 100;
+    margin-bottom: 5px;
+}
+
 @media (max-width: 450px) {
     h1 {
         margin-bottom: 0;

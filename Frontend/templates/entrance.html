@@ -1,191 +1,45 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LTmanager</title>
-    <link rel="stylesheet" href="/static/reset.css">
-    <link rel="stylesheet" href="/static/styles.css">
-    <link rel="stylesheet" href="/static/entrance.css">
-    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;700&display=swap" rel="stylesheet">
-</head>
-<body>
-    <!-- Шапка сайта -->
-    <header>
-        <nav>
-            <div class="logo">
-                <a href="index.html"><img src="/static/scr/logo.svg" alt="Логотип"></a>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="entrance.html">Войти</a></li>
-                <li><a href="creating-task-method.html">Создать задачу</a></li>
-                <li><a href="#">О сервисе</a></li>
-            </ul>
-            <div class="menu-toggle" onclick="toggleMenu()">☰</div>
-        </nav>
-    </header>
+{% extends "base.html" %}
 
-    <!-- Основное содержимое -->
-    <main>
-        <div class="container">   
-            <div id="register-form" class="form-container">
-              <h2>Регистрация</h2>
-              <form id="registration-form">
-                <div class="form-group">
-                  <input type="text" id="register-email" align="center" placeholder="Логин (почта)" required>
-                  <span id="register-email-error" class="error-message"></span>
-                </div>
-                <div class="form-group">
-                  <input type="password" id="register-password" align="center" placeholder="Пароль" required>
-                  <span id="register-password-error" class="error-message"></span>
-                </div>
-                <div class="form-buttons">
-                    <button type="submit">Создать</button>
-                    <a id="show-login">Войти в аккаунт</a>
-                </div>
-              </form>
+{% block extra_css %}
+    <link rel="stylesheet" href="/static/css/entrance.css">
+{% endblock %}
+
+{% block content %}
+    <div class="container">   
+        <div id="register-form" class="form-container">
+          <h2>Регистрация</h2>
+          <form id="registration-form">
+            <div class="form-group">
+              <input type="text" id="register-email" name="email" align="center" placeholder="Логин (почта)" required>
+              <span id="register-email-error" class="error-message"></span>
             </div>
-          
-            <div id="login-form" class="form-container active">
-                <h2>Вход в аккаунт</h2>
-                <form id="login-form">
-                  <div class="form-group">
-                    <input type="text" id="login-email" align="center" placeholder="Логин (почта)" required>
-                    <span id="login-email-error" class="error-message"></span>
-                  </div>
-                  <div class="form-group">
-                    <input type="password" id="login-password" align="center" placeholder="Пароль" required>
-                    <span id="login-password-error" class="error-message"></span>
-                  </div>
-                  <div class="form-buttons">
-                      <button type="submit">Войти</button>
-                      <a id="show-register">Регистрация</a>
-                  </div>
-                </form>
+            <div class="form-group">
+              <input type="password" id="register-password" name="password" align="center" placeholder="Пароль" required>
+              <span id="register-password-error" class="error-message"></span>
             </div>
+            <div class="form-buttons">
+                <button type="submit">Создать</button>
+                <a id="show-login">Войти в аккаунт</a>
+            </div>
+          </form>
         </div>
-    </main>
-
-    <!-- Подвал сайта -->
-    <footer>
-        <p>&copy; 2025 Все права защищены.</p>
-    </footer>
-
-    <script>
-        function toggleMenu() {
-            document.querySelector(".nav-menu").classList.toggle("active");
-        }
-    </script>
-
-    <script>
-        const registerButton = document.getElementById('show-register');
-        const loginButton = document.getElementById('show-login');
-        const registerForm = document.getElementById('register-form');
-        const loginForm = document.getElementById('login-form');
-        
-        registerButton.addEventListener('click', () => {
-        registerForm.classList.add('active');
-        loginForm.classList.remove('active');
-        });
-        
-        loginButton.addEventListener('click', () => {
-        loginForm.classList.add('active');
-        registerForm.classList.remove('active');
-        });
-
-
-        function validateEmail(email) {
-            const re = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
-            return re.test(String(email));
-        }
-
-        function validatePassword(password) {
-            const re = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[-!@#$%^&*()_+№;:?=]).{8,}$/;
-            return re.test(String(password));
-        }
-
-        // Обработка формы регистрации
-        document.getElementById('registration-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('register-email').value;
-            const password = document.getElementById('register-password').value;
-            let isValid = true;
-            
-            if (!validateEmail(email)) {
-                document.getElementById('register-email-error').textContent = 'Введенный email некорректный';
-                isValid = false;
-            } else {
-                document.getElementById('register-email-error').textContent = '';
-            }
-            
-            if (!validatePassword(password)) {
-                document.getElementById('register-password-error').textContent = 'Пароль должен содержать минимум 8 символов (строчные и заглавные буквы, цифры, спец. символы)';
-                isValid = false;
-            } else {
-                document.getElementById('register-password-error').textContent = '';
-            }
-            
-            // if (isValid) {
-            //     // Отправка данных на сервер
-            //     const formData = new FormData(this);
-                
-            //     fetch('register.php', {
-            //         method: 'POST',
-            //         body: formData
-            //     })
-            //     .then(response => response.json())
-            //     .then(data => {
-            //         if (data.success) {
-            //             alert('Регистрация успешна!');
-            //         } else {
-            //             alert('Ошибка: ' + data.message);
-            //         }
-            //     });
-            // }
-        });
-
-        // Обработка формы входа
-        document.getElementById('login-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            let isValid = true;
-            
-            if (!validateEmail(email)) {
-                document.getElementById('login-email-error').textContent = 'Введенный email некорректный';
-                isValid = false;
-            } else {
-                document.getElementById('login-email-error').textContent = '';
-            }
-            
-            if (!validatePassword(password)) {
-                document.getElementById('login-password-error').textContent = 'Пароль должен содержать минимум 8 символов (строчные и заглавные буквы, цифры, спец. символы)';
-                isValid = false;
-            } else {
-                document.getElementById('login-password-error').textContent = '';
-            }
-            
-            // if (isValid) {
-            //     // Отправка данных на сервер
-            //     const formData = new FormData(this);
-                
-            //     fetch('login.php', {
-            //         method: 'POST',
-            //         body: formData
-            //     })
-            //     .then(response => response.json())
-            //     .then(data => {
-            //         if (data.success) {
-            //             alert('Вход выполнен успешно!');
-            //             window.location.href = 'dashboard.php';
-            //         } else {
-            //             alert('Ошибка: ' + data.message);
-            //         }
-            //     });
-            // }
-        });
-    </script>
-</body>
-</html>
+      
+        <div id="login-container" class="form-container active">
+            <h2>Вход в аккаунт</h2>
+            <form id="login-form">
+              <div class="form-group">
+                <input type="text" id="login-email" name="email" align="center" placeholder="Логин (почта)" required>
+                <span id="login-email-error" class="error-message"></span>
+              </div>
+              <div class="form-group">
+                <input type="password" id="login-password" name="password" align="center" placeholder="Пароль" required>
+                <span id="login-password-error" class="error-message"></span>
+              </div>
+              <div class="form-buttons">
+                  <button type="submit">Войти</button>
+                  <a id="show-register">Регистрация</a>
+              </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

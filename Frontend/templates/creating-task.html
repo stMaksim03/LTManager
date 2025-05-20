@@ -1,134 +1,107 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LTmanager</title>
-    <link rel="stylesheet" href="/static/reset.css">
-    <link rel="stylesheet" href="/static/styles.css">
-    <link rel="stylesheet" href="/static/creating-task.css">
-    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;700&display=swap" rel="stylesheet">
+{% extends "base.html" %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="/static/css/creating-task.css">
+{% endblock %}
+
+{% block extra_script %}
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
-</head>
-<body>
-    <!-- Шапка сайта -->
-    <header>
-        <nav>
-            <div class="logo">
-                <a href="index.html"><img src="/static/scr/logo.svg" alt="Логотип"></a>
+{% endblock %}
+
+{% block content %}
+    <h1>Создание задачи</h1>
+
+    <div class="types">
+        <form class="container">
+            <h2>Типы грузов</h2>
+            <div id="container-cargo-type">
+                <div class="form form-cargo-type" id="form-cargo-type-0">
+                    <input type="text" placeholder="Наименование груза" class="cargo-name-input">
+                    <input type="text" placeholder="Вес/кг (за ед.)">
+                    <button type="button" class="bin remove-form-cargo-type"></button>
+                </div>
             </div>
-            <ul class="nav-menu">
-                <li><a href="entrance.html">Войти</a></li>
-                <li><a href="creating-task-method.html">Создать задачу</a></li>
-                <li><a href="#">О сервисе</a></li>
-            </ul>
-            <div class="menu-toggle" onclick="toggleMenu()">☰</div>
-        </nav>
-    </header>
-
-    <!-- Основное содержимое -->
-    <main>
-        <h1>Создание задачи</h1>
-
-        <div class="types">
-            <form class="container">
-                <h2>Типы грузов</h2>
-                <div id="container-cargo-type">
-                    <div class="form form-cargo-type" id="form-cargo-type-0">
-                        <input type="text" placeholder="Наименование груза" class="cargo-name-input">
-                        <input type="text" placeholder="Вес/кг (за ед.)">
-                        <button type="button" class="bin remove-form-cargo-type"></button>
-                    </div>
+            <button type="button" class="add-form-button" class="add-form-cargo-type" id="add-form-cargo-type">Добавить еще</button>
+        </form>
+        
+        <form class="container">
+            <h2>Типы машин</h2>
+            <div id="container-truck-type">
+                <div class="form form-truck-type" id="form-truck-type-0">
+                    <input type="text" placeholder="Наименование">
+                    <input type="text" placeholder="Грузоподъемность/т">
+                    <button type="button" class="bin remove-form-truck-type"></button>
                 </div>
-                <button type="button" class="add-form-button" class="add-form-cargo-type" id="add-form-cargo-type">Добавить еще</button>
-            </form>
-            
-            <form class="container">
-                <h2>Типы машин</h2>
-                <div id="container-truck-type">
-                    <div class="form form-truck-type" id="form-truck-type-0">
-                        <input type="text" placeholder="Наименование">
-                        <input type="text" placeholder="Грузоподъемность/т">
-                        <button type="button" class="bin remove-form-truck-type"></button>
-                    </div>
-                </div>
-                <button type="button" class="add-form-button" class="add-form-truck-type" id="add-form-truck-type">Добавить еще</button>
-            </form>
-        </div>
+            </div>
+            <button type="button" class="add-form-button" class="add-form-truck-type" id="add-form-truck-type">Добавить еще</button>
+        </form>
+    </div>
 
-        <div class="types">
-            <form class="container">
-                <h2>Склады/отправка</h2>
-                <div id="container-warehouse">
-                    <div class="warehouse-form" id="warehouse-form-0">
-                        <div class="form form-place">
-                            <input type="text" placeholder="Название">
-                            <input type="text" placeholder="Адрес">
-                        </div>
-                        <div class="cargo-list">
-                            <div class="cargo-item">
-                                <div class="cargo-item-specification">
-                                    <input type="text" placeholder="Тип груза" class="cargo-type-input" list="cargo-types-list">
-                                    <datalist id="cargo-types-list"></datalist>
-                                    <input type="text" placeholder="Количество">
-                                </div>
-                                <div class="cargo-item-buttons">
-                                    <button type="button" class="add-cargo">Добавить груз</button>
-                                    <button type="button" class="remove-cargo">Удалить груз</button>
-                                </div>
+    <div class="types">
+        <form class="container">
+            <h2>Склады/отправка</h2>
+            <div id="container-warehouse">
+                <div class="warehouse-form" id="warehouse-form-0">
+                    <div class="form form-place">
+                        <input type="text" placeholder="Название">
+                        <input type="text" placeholder="Адрес" title="Формат ввода: 'город, улица, дом'">
+                    </div>
+                    <div class="cargo-list">
+                        <div class="cargo-item">
+                            <div class="cargo-item-specification">
+                                <input type="text" placeholder="Тип груза" class="cargo-type-input" list="cargo-types-list">
+                                <datalist id="cargo-types-list"></datalist>
+                                <input type="text" placeholder="Количество">
+                            </div>
+                            <div class="cargo-item-buttons">
+                                <button type="button" class="add-cargo">Добавить груз</button>
+                                <button type="button" class="remove-cargo">Удалить груз</button>
                             </div>
                         </div>
-                        <button type="button" class="remove-warehouse">Удалить склад</button>
                     </div>
+                    <button type="button" class="remove-warehouse">Удалить склад</button>
                 </div>
-                <button type="button" class="add-form-button" id="add-warehouse">Добавить еще</button>
-            </form>
-            
-            <form class="container">
-                <h2>Пункты приема</h2>
-                <div id="container-destination">
-                    <div class="destination-form" id="destination-form-0">
-                        <div class="form form-place">
-                            <input type="text" placeholder="Название">
-                            <input type="text" placeholder="Адрес">
-                        </div>
-                        <div class="cargo-list">
-                            <div class="cargo-item">
-                                <div class="cargo-item-specification">
-                                    <input type="text" placeholder="Тип груза" class="cargo-type-input" list="cargo-types-list">
-                                    <datalist id="cargo-types-list"></datalist>
-                                    <input type="text" placeholder="Количество">
-                                </div>
-                                <div class="cargo-item-buttons">
-                                    <button type="button" class="add-cargo">Добавить груз</button>
-                                    <button type="button" class="remove-cargo">Удалить груз</button>
-                                </div>
+            </div>
+            <button type="button" class="add-form-button" id="add-warehouse">Добавить еще</button>
+        </form>
+        
+        <form class="container">
+            <h2>Пункты приема</h2>
+            <div id="container-destination">
+                <div class="destination-form" id="destination-form-0">
+                    <div class="form form-place">
+                        <input type="text" placeholder="Название">
+                        <input type="text" placeholder="Адрес" title="Формат ввода: 'город, улица, дом'">
+                    </div>
+                    <div class="cargo-list">
+                        <div class="cargo-item">
+                            <div class="cargo-item-specification">
+                                <input type="text" placeholder="Тип груза" class="cargo-type-input" list="cargo-types-list">
+                                <datalist id="cargo-types-list"></datalist>
+                                <input type="text" placeholder="Количество">
+                            </div>
+                            <div class="cargo-item-buttons">
+                                <button type="button" class="add-cargo">Добавить груз</button>
+                                <button type="button" class="remove-cargo">Удалить груз</button>
                             </div>
                         </div>
-                        <button type="button" class="remove-destination">Удалить пункт</button>
                     </div>
+                    <button type="button" class="remove-destination">Удалить пункт</button>
                 </div>
-                <button type="button" class="add-form-button" id="add-destination">Добавить еще</button>
-            </form>
-        </div>
+            </div>
+            <button type="button" class="add-form-button" id="add-destination">Добавить еще</button>
+        </form>
+    </div>
 
-        <div>
-            <button type="submit" class="clear-button">Очистить формы</button>
-            <button type="submit" class="check-button">Проверить условие</button>
-        </div>
-    </main>
+    <div>
+        <button type="submit" class="clear-button">Очистить формы</button>
+        <button type="submit" class="check-button">Проверить условие</button>
+    </div>
+{% endblock %}
 
-    <!-- Подвал сайта -->
-    <footer>
-        <p>&copy; 2025 Все права защищены.</p>
-    </footer>
-
+{% block extra_js %}
     <script>
-        function toggleMenu() {
-            document.querySelector(".nav-menu").classList.toggle("active");
-        }
-
         // Функции для работы с cookies
         function saveFormDataToCookies() {
             const formData = collectFormData();
@@ -346,7 +319,7 @@
                     newForm.innerHTML = `
                         <div class="form form-place">
                             <input type="text" placeholder="Название" value="${data.name || ''}">
-                            <input type="text" placeholder="Адрес" value="${data.address || ''}">
+                            <input type="text" placeholder="Адрес" title="Формат ввода: 'город, улица, дом'" value="${data.address || ''}">
                         </div>
                         <div class="cargo-list">
                             ${cargosHTML}
@@ -386,7 +359,7 @@
                 newForm.innerHTML = `
                     <div class="form form-place">
                         <input type="text" placeholder="Название">
-                        <input type="text" placeholder="Адрес">
+                        <input type="text" placeholder="Адрес" title="Формат ввода: 'город, улица, дом'">
                     </div>
                     <div class="cargo-list">
                         <div class="cargo-item">
@@ -436,7 +409,7 @@
                 newForm.innerHTML = `
                     <div class="form form-place">
                         <input type="text" placeholder="Название">
-                        <input type="text" placeholder="Адрес">
+                        <input type="text" placeholder="Адрес" title="Формат ввода: 'город, улица, дом'">
                     </div>
                     <div class="cargo-list">
                         <div class="cargo-item">
@@ -644,5 +617,4 @@
             location.reload(); // Полностью перезагружаем страницу для сброса всех счетчиков
         });
     </script>
-</body>
-</html>
+{% endblock %}

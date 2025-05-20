@@ -1,9 +1,44 @@
-from flask import Flask, request, jsonify, render_template
+from datetime import timedelta
+from flask import Flask, request, jsonify, render_template, session
 from flask_cors import CORS
+
+import sys
+from pathlib import Path
+
+project_root = Path(__file__).parent.parent
+sys.path.append(str(project_root))
+
+from Backend.Solver.Data import DatabaseManager
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
-CORS(app)
+CORS(app, supports_credentials=True, resources={
+    r"/*": {
+        "origins": ["http://127.0.0.1:5000", "http://localhost:5000"]
+    }
+})
+app.config.update(
+    SESSION_COOKIE_SECURE=False,
+    SESSION_COOKIE_SAMESITE='Lax',
+    SESSION_COOKIE_HTTPONLY=True,
+    PERMANENT_SESSION_LIFETIME=timedelta(days=1),
+)
+
+# DB_CONFIG = {
+#         'dbname': 'postgres',
+#         'user': 'postgres',
+#         'password': 'raid',
+#         'host': 'localhost',
+#         'port': '5432'
+#     }
+
+DB_CONFIG = {
+        'dbname': 'postgres',
+        'user': 'postgres',
+        'password': 'Polina/2023',
+        'host': 'localhost',
+        'port': '5432'
+    }
 
 
 @app.route('/')
@@ -60,6 +95,50 @@ def get_data():
         'warehouses': data_storage['warehouses'],
         'destinations': data_storage['destinations']
     })
+
+@app.route('/login', methods=['POST'])
+def login():
+    email = request.form.get('email')
+    password = request.form.get('password')
+    
+    with DatabaseManager(**DB_CONFIG) as db:
+        user = db.authenticate_user(email, password)
+        
+        if user:
+            session['user_id'] = user.user_id
+            print("Session after login:", session)  # Логируем сессию
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'message': 'Неверный email или пароль'})
+    
+    return render_template('entrance.html')
+
+
+@app.route('/register', methods=['POST'])
+def register():
+    email = request.form.get('email')
+    password = request.form.get('password')
+    
+    with DatabaseManager(**DB_CONFIG) as db:
+        try:
+            user = db.create_user(email, email, password)
+            session['user_id'] = user.user_id
+            return jsonify({'success': True})
+        except Exception as e:
+            return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/check_auth')
+def check_auth():
+    print("Current session:", dict(session))  # Логируем всю сессию
+    if 'user_id' in session:
+        print('yes')
+        with DatabaseManager(**DB_CONFIG) as db:
+            user = db.get_user_by_id(session['user_id'])
+            if user:
+                return jsonify({'authenticated': True, 'username': user.username})
+        
+    return jsonify({'authenticated': False})
 
 
 def all_fields_filled(data):
