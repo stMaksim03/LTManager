@@ -6,50 +6,78 @@
 {% endblock %}
 
 {% block content %}
-    <section class="section">
-        <div class="section-content">
+    <section class="main-banner">
+        <div>
             <h2>Сокращайте затраты на логистику до 30%</h2>
         
-            <ul class="benefits">
-                <li>Оптимизация маршрутов и загрузки транспорта</li>
-                <li>Автоматизация рутинных процессов</li>
-                <li>Контроль всех этапов доставки в реальном времени</li>
-                <li>Подходит для малого, среднего и крупного бизнеса</li>
-            </ul>
-            
-            <a href="creating-task-method.html" class="try-btn">Попробовать</a>
-            <button class="video-btn">▷ Видео о продукте</button>
         </div>
         
-        <div class="image-container">
-            <img src="/static/scr/main image.png" alt="Оптимизация логистики" class="main-image">
-        </div>
     </section>
 
-    <div class="divider"></div>
+<section id="lt-manager" class="centered-text">
+    <div class="centered-content">
+        <h2><span class="highlight">LT Manager</span> – ваш помощник в организации<br>грузоперевозок</h2>
+        <p>Решаем транспортные задачи <span class="highlight">просто и эффективно</span></p>
+    </div>
+</section>
 
-    <section class="section">
-        <div class="section-content">
-            <h2>Что можно учесть при планировании</h2>
-            <div class="parameters-grid">
-                <div class="parameter-section">
-                    <h3><i class="fas fa-clipboard-list"></i> Параметры заказов</h3>
-                    <ul class="parameter-list">
-                        <li>Тип груза</li>
-                        <li>Вес груза</li>
-                        <li>Количество грузов</li>
-                    </ul>
-                </div>
-                
-                <div class="parameter-section">
-                    <h3><i class="fas fa-car"></i> Доступные ресурсы</h3>
-                    <ul class="parameter-list">
-                        <li>Грузоподъемность машин</li>
-                        <li>Расход топлива</li>
-                        <li>Оплата персонала</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>      
+
+<section class="features">
+    <div class="feature-item">
+        <img src="{{ url_for('static', filename='scr/feature1.png') }}" alt="Картинка 1">
+        <h3>Начните экономить уже сейчас</h3>
+        <p>Регистрация займет всего пару кликов, а разобраться в интерфейсе можно за 15 минут.</p>
+    </div>
+    <div class="feature-item">
+        <img src="{{ url_for('static', filename='scr/feature2.png') }}" alt="Картинка 2">
+        <h3>Получите готовое решение</h3>
+        <p>Вы получаете не просто список маршрутов, а продуманное решение с учетом всех особенностей вашей логистики.</p>
+    </div>
+    <div class="feature-item">
+        <img src="{{ url_for('static', filename='scr/feature3.png') }}" alt="Картинка 3">
+        <h3>Сохраните контроль над самым важным</h3>
+        <p>Современные алгоритмы позволяют учесть множество факторов.</p>
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="cta-text">
+        <h2>Убедитесь, как просто можно<br>управлять грузоперевозками</h2>
+    </div>
+    <div class="cta-button">
+        <a href="creating-task-method.html" class="btn">Попробовать</a>
+    </div>
+</section>
+
+<section class="info-section">
+    <div class="info-item">
+        <a href="#video" class="info-link">
+            <span class="highlight">Видео о сервисе</span>
+        </a>
+    </div>
+    <div class="info-item">
+        <a class="info-link">
+            <span>Техдокументация</span>
+            <a href="#"><img src="{{ url_for('static', filename='scr/image_qr.png') }}" alt="QR-код" class="info-icon"></a>
+            <a href="#"><img src="{{ url_for('static', filename='scr/image_download.png') }}" alt="Техдокументация" class="info-icon"></a>
+        </a>
+    </div>
+</section>
+
+<script>
+    // Плавная прокрутка
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(event) {
+            event.preventDefault(); // Отменяем стандартное поведение ссылки
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+            
+            targetElement.scrollIntoView({
+                behavior: 'smooth' // Плавная прокрутка
+            });
+        });
+    });
+</script>
+
+
 {% endblock %}
