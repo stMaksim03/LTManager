@@ -1,8 +1,6 @@
 import RouteClasses as rc
 import BaseClasses as bc
 
-
-
 def main():
     a = bc.ProductStorage("zavod", 0)
     a.insert(bc.Product(0, "apple", 2), 2)
@@ -12,7 +10,6 @@ def main():
     for product, count in a:
         print(f"{product.id} {product.name} {product.weight} {count}")
     a = rc.Route()
-    
     return 0
 
 main()
