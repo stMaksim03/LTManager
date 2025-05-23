@@ -17,7 +17,7 @@ class Product:
         )
 
 
-@dataclass(order=True)
+@dataclass(order=True, frozen=True)
 class Transport:
     id: int = -1
     name: str = field(default="Unnamed", compare=False)
