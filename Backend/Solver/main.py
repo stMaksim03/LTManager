@@ -1,5 +1,6 @@
 import RouteClasses as rc
 import BaseClasses as bc
+from calculation import solve
 
 def main():
     a = bc.ProductStorage("zavod", 0)
@@ -10,6 +11,12 @@ def main():
     for product, count in a:
         print(f"{product.id} {product.name} {product.weight} {count}")
     a = rc.Route()
+    supply = [10, 20, 30]
+    demand = [15, 20, 25]
+    cost = [[5, 3, 1], [3, 2, 4], [4, 1, 2]]
+
+    result = solve(supply, demand, cost)
+    print(result)
     return 0
 
 main()

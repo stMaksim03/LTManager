@@ -1,5 +1,10 @@
+//go:build cgo
+
 package main
 
+/*
+#include <stdlib.h>
+*/
 import (
 	"C"
 )
@@ -149,7 +154,6 @@ func isValidBasis(plan [][]int) bool {
 	m := len(plan)
 	n := len(plan[0])
 
-	// Кол-во базисных ячеек
 	count := 0
 	for i := 0; i < m; i++ {
 		for j := 0; j < n; j++ {
@@ -162,14 +166,11 @@ func isValidBasis(plan [][]int) bool {
 		return false
 	}
 
-	// Проверка на циклы — запустим buildCycle с каждой базисной ячейки,
-	// если найдём цикл, это ошибка
 	for i := 0; i < m; i++ {
 		for j := 0; j < n; j++ {
 			if plan[i][j] > 0 || plan[i][j] == -1 {
 				cycle := buildCycle(plan, i, j)
 				if cycle != nil && len(cycle) > 0 {
-					// Найден цикл => базис некорректен
 					return false
 				}
 			}
@@ -359,12 +360,12 @@ func solve(supply []int, demand []int, cost [][]int) [][]int {
 	return result
 }
 
-func SolveTransport(supplyPtr *C.int, supplyLen C.int, demandPtr *C.int, demandLen C.int, costPtr *C.int, costRows, costCols C.int) *C.int {
+//export solveTransport
+func solveTransport(supplyPtr *C.int, supplyLen C.int, demandPtr *C.int, demandLen C.int, costPtr *C.int, costRows, costCols C.int) *C.int {
 	supply := make([]int, int(supplyLen))
 	demand := make([]int, int(demandLen))
 	cost := make([][]int, int(costRows))
 
-	// Преобразуем указатели в Go-срезы
 	supplySlice := (*[1 << 30]C.int)(unsafe.Pointer(supplyPtr))[:supplyLen:supplyLen]
 	demandSlice := (*[1 << 30]C.int)(unsafe.Pointer(demandPtr))[:demandLen:demandLen]
 	costSlice := (*[1 << 30]C.int)(unsafe.Pointer(costPtr))[: costRows*costCols : costRows*costCols]
@@ -382,10 +383,8 @@ func SolveTransport(supplyPtr *C.int, supplyLen C.int, demandPtr *C.int, demandL
 		}
 	}
 
-	// Ваш solve здесь
 	plan := solve(supply, demand, cost)
 
-	// Упаковываем результат
 	out := (*C.int)(C.malloc(C.size_t(len(supply)*len(demand)) * C.size_t(unsafe.Sizeof(C.int(0)))))
 	outSlice := (*[1 << 30]C.int)(unsafe.Pointer(out))[:len(supply)*len(demand)]
 
