@@ -43,11 +43,16 @@ button:active {
 
 .form-container {
     display: none; /* Скрываем формы по умолчанию */
+    transition: all 0.3s ease;
 }
 
 .form-container.active {
     display: block;
     margin-bottom: 10px;
+}
+
+.form-container:not(.active) {
+    display: none;
 }
 
 .form-buttons {
@@ -74,11 +79,17 @@ div > a:hover {
     color: #ff0000;
     font-size: 12px;
     margin-top: 5px;
-    display: block;
+    padding: 10px;
+    background-color: #ffeeee;
+    border-radius: 4px;
+    display: none;
 }
 
-input.error {
-    border: 1px solid #ff0000;
+.server-error {
+    background-color: #ffebee;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
 }
 
 @media (max-width: 450px) {

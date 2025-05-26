@@ -6,6 +6,7 @@
     <title>LTmanager</title>
     <link rel="stylesheet" href="/static/css/reset.css">
     <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/base.css">
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;700&display=swap" rel="stylesheet">
     {% block extra_css %}{% endblock %}
     {% block extra_script %}{% endblock %}
@@ -18,10 +19,18 @@
             </div>
             <ul class="nav-menu">
                 <li id="auth-link">
-                    <a href="entrance.html">Войти</a>
-                </li>
+                    {% if current_user.is_authenticated %}
+                        <div class="user-menu">
+                            <a href="#" class="username">{{ current_user.username }}</a>
+                            <div class="dropdown-content">
+                                <a href="#" id="logout-link">Выйти</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="entrance.html">Войти</a>
+                    {% endif %}
                 <li><a href="creating-task-method.html">Создать задачу</a></li>
-                <li><a href="#lt-manager">О сервисе</a></li>
+                <li><a href="index.html#lt-manager">О сервисе</a></li>
             </ul>
             <div class="menu-toggle" onclick="toggleMenu()">☰</div>
         </nav>
@@ -40,17 +49,31 @@
         function toggleMenu() {
             document.querySelector(".nav-menu").classList.toggle("active");
         }
-        
-        // Проверяем аутентификацию при загрузке страницы
-        fetch('http://localhost:5000/check_auth', { credentials: 'include' })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data)
-                if (data.authenticated) {
-                    const authLink = document.getElementById('auth-link');
-                    authLink.innerHTML = `<a href="#">${data.username}</a>`;
-                }
-            });
+
+        document.getElementById('logout-link')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            fetch('/logout', { credentials: 'include' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = 'entrance.html';
+                    }
+                });
+        });
+
+        // Проверка авторизации при нажатии на "Создать задачу"
+        document.querySelector('a[href="creating-task-method.html"]')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            fetch('/check_auth', { credentials: 'include' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.authenticated) {
+                        window.location.href = 'creating-task-method.html';
+                    } else {
+                        window.location.href = 'entrance.html';
+                    }
+                });
+        });
     </script>
     {% block extra_js %}{% endblock %}
 </body>

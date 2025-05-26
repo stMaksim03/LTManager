@@ -85,6 +85,26 @@ class DatabaseManager:
         result = self.cursor.fetchone()
         return User(**result) if result else None
     
+    def authenticate_user(self, email: str, password_hash: str) -> Optional[User]:
+        query = """
+        SELECT user_id, username, email, is_active 
+        FROM users 
+        WHERE email = %s AND password_hash = %s;
+        """
+        self.cursor.execute(query, (email, password_hash))
+        result = self.cursor.fetchone()
+        return User(**result) if result else None
+
+    def get_user_by_id(self, user_id: str) -> Optional[User]:
+        query = """
+        SELECT user_id, username, email, is_active 
+        FROM users 
+        WHERE user_id = %s;
+        """
+        self.cursor.execute(query, (user_id,))
+        result = self.cursor.fetchone()
+        return User(**result) if result else None
+    
     # Методы для работы с продуктами
     def add_product(self, user_id: str, name: str, weight: float, aux_info: Dict = None) -> Product:
         query = """

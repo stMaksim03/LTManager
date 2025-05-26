@@ -14,70 +14,101 @@
         
     </section>
 
-<section id="lt-manager" class="centered-text">
-    <div class="centered-content">
-        <h2><span class="highlight">LT Manager</span> – ваш помощник в организации<br>грузоперевозок</h2>
-        <p>Решаем транспортные задачи <span class="highlight">просто и эффективно</span></p>
-    </div>
-</section>
+    <section id="lt-manager" class="centered-text">
+        <div class="centered-content">
+            <h2><span class="highlight">LT Manager</span> – ваш помощник в организации<br>грузоперевозок</h2>
+            <p>Решаем транспортные задачи <span class="highlight">просто и эффективно</span></p>
+        </div>
+    </section>
 
 
-<section class="features">
-    <div class="feature-item">
-        <img src="{{ url_for('static', filename='scr/feature1.png') }}" alt="Картинка 1">
-        <h3>Начните экономить уже сейчас</h3>
-        <p>Регистрация займет всего пару кликов, а разобраться в интерфейсе можно за 15 минут.</p>
-    </div>
-    <div class="feature-item">
-        <img src="{{ url_for('static', filename='scr/feature2.png') }}" alt="Картинка 2">
-        <h3>Получите готовое решение</h3>
-        <p>Вы получаете не просто список маршрутов, а продуманное решение с учетом всех особенностей вашей логистики.</p>
-    </div>
-    <div class="feature-item">
-        <img src="{{ url_for('static', filename='scr/feature3.png') }}" alt="Картинка 3">
-        <h3>Сохраните контроль над самым важным</h3>
-        <p>Современные алгоритмы позволяют учесть множество факторов.</p>
-    </div>
-</section>
+    <section class="features">
+        <div class="feature-item">
+            <img src="{{ url_for('static', filename='scr/feature1.png') }}" alt="Картинка 1">
+            <h3>Начните экономить уже сейчас</h3>
+            <p>Регистрация займет всего пару кликов, а разобраться в интерфейсе можно за 15 минут.</p>
+        </div>
+        <div class="feature-item">
+            <img src="{{ url_for('static', filename='scr/feature2.png') }}" alt="Картинка 2">
+            <h3>Получите готовое решение</h3>
+            <p>Вы получаете не просто список маршрутов, а продуманное решение с учетом всех особенностей вашей логистики.</p>
+        </div>
+        <div class="feature-item">
+            <img src="{{ url_for('static', filename='scr/feature3.png') }}" alt="Картинка 3">
+            <h3>Сохраните контроль над самым важным</h3>
+            <p>Современные алгоритмы позволяют учесть множество факторов.</p>
+        </div>
+    </section>
 
-<section class="cta-section">
-    <div class="cta-text">
-        <h2>Убедитесь, как просто можно<br>управлять грузоперевозками</h2>
-    </div>
-    <div class="cta-button">
-        <a href="creating-task-method.html" class="btn">Попробовать</a>
-    </div>
-</section>
+    <section class="cta-section">
+        <div class="cta-text">
+            <h2>Убедитесь, как просто можно<br>управлять грузоперевозками</h2>
+        </div>
+        <div class="cta-button">
+            <a href="creating-task-method.html" class="btn">Попробовать</a>
+        </div>
+    </section>
 
-<section class="info-section">
-    <div class="info-item">
-        <a href="#video" class="info-link">
-            <span class="highlight">Видео о сервисе</span>
-        </a>
-    </div>
-    <div class="info-item">
-        <a class="info-link">
-            <span>Техдокументация</span>
-            <a href="#"><img src="{{ url_for('static', filename='scr/image_qr.png') }}" alt="QR-код" class="info-icon"></a>
-            <a href="#"><img src="{{ url_for('static', filename='scr/image_download.png') }}" alt="Техдокументация" class="info-icon"></a>
-        </a>
-    </div>
-</section>
+    <section class="info-section">
+        <div class="info-item">
+            <a href="#video" class="info-link">
+                <span class="highlight">Видео о сервисе</span>
+            </a>
+        </div>
+        <div class="info-item">
+            <a class="info-link">
+                <span>Техдокументация</span>
+                <a href="#"><img src="{{ url_for('static', filename='scr/image_qr.png') }}" alt="QR-код" class="info-icon"></a>
+                <a href="https://drive.google.com/uc?export=download&confirm=no_antivirus&id=1mA3CLNBQW49-bxGdbTHCWtO8Uwn2K0YE"><img src="{{ url_for('static', filename='scr/image_download.png') }}" alt="Техдокументация" class="info-icon"></a>
+            </a>
+        </div>
+    </section>
 
-<script>
-    // Плавная прокрутка
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(event) {
-            event.preventDefault(); // Отменяем стандартное поведение ссылки
-            const targetId = this.getAttribute('href');
-            const targetElement = document.querySelector(targetId);
-            
-            targetElement.scrollIntoView({
-                behavior: 'smooth' // Плавная прокрутка
+    <!-- Модальное окно для QR-кода -->
+    <div id="qrModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <img src="{{ url_for('static', filename='scr/qr-codeLTM.gif') }}" alt="QR-код" class="modal-qr">
+            <p>Отсканируйте QR-код для получения дополнительной информации</p>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        // Плавная прокрутка
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(event) {
+                event.preventDefault(); // Отменяем стандартное поведение ссылки
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                targetElement.scrollIntoView({
+                    behavior: 'smooth' // Плавная прокрутка
+                });
             });
         });
-    });
-</script>
 
+        // Модальное окно для QR-кода
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('qrModal');
+            const qrBtn = document.querySelector('img[alt="QR-код"]').parentElement;
+            const span = document.getElementsByClassName('close')[0];
 
+            qrBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                modal.style.display = 'block';
+            });
+
+            span.onclick = function() {
+                modal.style.display = 'none';
+            };
+
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            };
+        });
+    </script>
 {% endblock %}

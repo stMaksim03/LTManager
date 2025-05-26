@@ -8,7 +8,7 @@
     <div class="container">   
         <div id="register-form" class="form-container">
           <h2>Регистрация</h2>
-          <form id="registration-form">
+          <form id="registration-form" action="/register" method="POST" onsubmit="return handleLogin(event)">
             <div class="form-group">
               <input type="text" id="register-email" name="email" align="center" placeholder="Логин (почта)" required>
               <span id="register-email-error" class="error-message"></span>
@@ -17,6 +17,7 @@
               <input type="password" id="register-password" name="password" align="center" placeholder="Пароль" required>
               <span id="register-password-error" class="error-message"></span>
             </div>
+            <div id="register-error" class="error-message server-error" style="display: none;"></div>
             <div class="form-buttons">
                 <button type="submit">Создать</button>
                 <a id="show-login">Войти в аккаунт</a>
@@ -26,7 +27,7 @@
       
         <div id="login-container" class="form-container active">
             <h2>Вход в аккаунт</h2>
-            <form id="login-form">
+            <form id="login-form" action="/login" method="POST" onsubmit="return handleLogin(event)">
               <div class="form-group">
                 <input type="text" id="login-email" name="email" align="center" placeholder="Логин (почта)" required>
                 <span id="login-email-error" class="error-message"></span>
@@ -35,6 +36,7 @@
                 <input type="password" id="login-password" name="password" align="center" placeholder="Пароль" required>
                 <span id="login-password-error" class="error-message"></span>
               </div>
+              <div id="auth-error" class="error-message server-error" style="display: none;"></div>
               <div class="form-buttons">
                   <button type="submit">Войти</button>
                   <a id="show-register">Регистрация</a>
@@ -42,4 +44,43 @@
             </form>
         </div>
     </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    function handleLogin(event) {
+        event.preventDefault();
+        const form = event.target;
+        let errorElement;
+
+        if (form.id === 'login-form') {
+          errorElement = document.getElementById('auth-error');
+        } else {
+          errorElement = document.getElementById('register-error');
+        }
+        
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams(new FormData(form))
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect || '/';
+            } else {
+                errorElement.textContent = data.message;
+                errorElement.style.display = 'block';
+            }
+        })
+        .catch(error => {
+            errorElement.textContent = 'Ошибка соединения с сервером';
+            errorElement.style.display = 'block';
+        });
+        
+        return false;
+    }
+  </script>
 {% endblock %}

@@ -1,6 +1,8 @@
 from datetime import timedelta
+import re
 from flask import Flask, request, jsonify, render_template, session
 from flask_cors import CORS
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
 import sys
 from pathlib import Path
@@ -23,6 +25,23 @@ app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     PERMANENT_SESSION_LIFETIME=timedelta(days=1),
 )
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'static_files'
+
+class User(UserMixin):
+    def __init__(self, user_id, username):
+        self.id = user_id
+        self.username = username
+
+@login_manager.user_loader
+def load_user(user_id):
+    with DatabaseManager(**DB_CONFIG) as db:
+        user_data = db.get_user_by_id(user_id)
+        if user_data:
+            return User(user_data.user_id, user_data.username)
+    return None
 
 # DB_CONFIG = {
 #         'dbname': 'postgres',
@@ -96,49 +115,87 @@ def get_data():
         'destinations': data_storage['destinations']
     })
 
+
 @app.route('/login', methods=['POST'])
 def login():
     email = request.form.get('email')
     password = request.form.get('password')
+
+    email_re = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    password_re = r'^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[-!@#$%^&*()_+№;:?=]).{8,}$'
+
+    if not re.match(email_re, email):
+        return jsonify({
+            'success': False,
+            'message': 'Некорректный формат email'
+        }), 400
+        
+    if not re.match(password_re, password):
+        return jsonify({
+            'success': False,
+            'message': 'Пароль должен содержать: 8+ символов, цифры, буквы в разных регистрах и спецсимволы'
+        }), 400
     
     with DatabaseManager(**DB_CONFIG) as db:
         user = db.authenticate_user(email, password)
         
         if user:
-            session['user_id'] = user.user_id
-            print("Session after login:", session)  # Логируем сессию
-            return jsonify({'success': True})
+            user_obj = User(user.user_id, user.username)
+            login_user(user_obj)
+            return jsonify({'success': True, 'redirect': '/'})
         else:
-            return jsonify({'success': False, 'message': 'Неверный email или пароль'})
+            return jsonify({'success': False, 'message': 'Ошибка авторизации: неверный email или пароль'})
     
     return render_template('entrance.html')
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return jsonify({'success': True})
 
 
 @app.route('/register', methods=['POST'])
 def register():
     email = request.form.get('email')
     password = request.form.get('password')
+
+    email_re = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    password_re = r'^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[-!@#$%^&*()_+№;:?=]).{8,}$'
+    
+    if not re.match(email_re, email):
+        return jsonify({
+            'success': False,
+            'message': 'Некорректный формат email'
+        }), 400
+        
+    if not re.match(password_re, password):
+        return jsonify({
+            'success': False,
+            'message': 'Пароль должен содержать: 8+ символов, цифры, буквы в разных регистрах и спецсимволы'
+        }), 400
     
     with DatabaseManager(**DB_CONFIG) as db:
         try:
             user = db.create_user(email, email, password)
             session['user_id'] = user.user_id
-            return jsonify({'success': True})
+            return jsonify({'success': True, 'redirect': '/entrance.html'})
         except Exception as e:
             return jsonify({'success': False, 'message': str(e)})
 
 
 @app.route('/check_auth')
 def check_auth():
-    print("Current session:", dict(session))  # Логируем всю сессию
-    if 'user_id' in session:
-        print('yes')
-        with DatabaseManager(**DB_CONFIG) as db:
-            user = db.get_user_by_id(session['user_id'])
-            if user:
-                return jsonify({'authenticated': True, 'username': user.username})
-        
+    if current_user.is_authenticated:
+        return jsonify({'authenticated': True, 'username': current_user.username})
     return jsonify({'authenticated': False})
+
+
+@app.route('/creating-task.html')
+@login_required
+def protected_creating_task():
+    return render_template('creating-task.html')
 
 
 def all_fields_filled(data):
