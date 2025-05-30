@@ -53,6 +53,16 @@
                 zoom: 10
             });
 
+            // ymaps.vow.all([
+                // ymaps.route(['Москва, метро Смоленская', 'Москва, метро Нагатинский затон']),
+                // ymaps.route(['Москва, метро Нагатинский затон', 'Москва, метро Пионерская'])
+            //     ymaps.route([[55.748761277203954,37.58216949999992], [55.68442677743456,37.7045924999999]]),
+            //     ymaps.route(['Москва, метро Нагатинский затон', 'Москва, метро Пионерская'])
+            // ]).spread(function (route1, route2) {
+            //     map.geoObjects.add(route1).add(route2);
+            //     ymaps.geoQuery(route1.getPaths()).add(route2.getPaths()).applyBoundsToMap(map);
+            // });
+
             fetch('http://localhost:5000/data')
                 .then(response => response.json())
                 .then(data => {
