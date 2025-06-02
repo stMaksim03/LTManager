@@ -220,18 +220,18 @@
             const warehouse = dbData.warehouses.find(w => w.name === warehouseName);
             
             if (warehouse) {
-                // Если склад из БД - обновляем из данных БД
+                // Если склад из БД - обновляем из данных БД с количеством
                 datalists.forEach(datalist => {
                     datalist.innerHTML = '';
                     warehouse.cargos.forEach(cargo => {
                         const option = document.createElement('option');
                         option.value = cargo.type;
-                        option.dataset.quantity = cargo.quantity;
+                        option.dataset.quantity = cargo.quantity; // Добавляем количество только для данных из БД
                         datalist.appendChild(option);
                     });
                 });
             } else {
-                // Если склад не из БД - обновляем из пользовательских типов
+                // Если склад не из БД - обновляем из пользовательских типов без количества
                 updateFormCargosList(warehouseForm);
             }
         }
@@ -240,19 +240,40 @@
             const datalists = form.querySelectorAll('.warehouse-cargos-list, #cargo-types-list');
             
             datalists.forEach(datalist => {
+                // Сохраняем текущее выбранное значение (если есть)
+                const associatedInput = document.querySelector(`input[list="${datalist.id}"]`);
+                const currentValue = associatedInput ? associatedInput.value : '';
+                
                 datalist.innerHTML = '';
                 
-                // Собираем все типы грузов из форм
-                const userCargoTypes = new Set();
+                // Собираем все типы грузов из форм и БД
+                const allCargoTypes = new Set();
+                
+                // Добавляем типы из БД
+                if (dbData.cargoTypes.length > 0) {
+                    dbData.cargoTypes.forEach(type => {
+                        allCargoTypes.add(type.name);
+                        const option = document.createElement('option');
+                        option.value = type.name;
+                        option.dataset.weight = type.weight;
+                        datalist.appendChild(option);
+                    });
+                }
+                
+                // Добавляем пользовательские типы грузов
                 document.querySelectorAll('.cargo-name-input').forEach(input => {
-                    if (input.value.trim()) userCargoTypes.add(input.value.trim());
+                    if (input.value.trim() && !allCargoTypes.has(input.value.trim())) {
+                        allCargoTypes.add(input.value.trim());
+                        const option = document.createElement('option');
+                        option.value = input.value.trim();
+                        datalist.appendChild(option);
+                    }
                 });
                 
-                userCargoTypes.forEach(type => {
-                    const option = document.createElement('option');
-                    option.value = type;
-                    datalist.appendChild(option);
-                });
+                // Восстанавливаем выбранное значение
+                if (associatedInput && currentValue) {
+                    associatedInput.value = currentValue;
+                }
             });
         }
 
@@ -303,7 +324,8 @@
             
             const selectedOption = Array.from(datalist.options).find(option => option.value === input.value);
             
-            if (selectedOption) {
+            // Проверяем, есть ли данные о доступном количестве (только для данных из БД)
+            if (selectedOption && selectedOption.dataset.quantity !== undefined) {
                 quantitySpan.textContent = `(Доступно: ${selectedOption.dataset.quantity})`;
                 quantitySpan.style.display = 'inline';
             } else {
@@ -445,7 +467,7 @@
 
             if (initialData.length > 0) {
                 initialData.forEach((data, index) => {
-                    addNewForm(container, type, index, data.name, data.address, data.cargos);
+                    addNewForm(container, type, index, data.name, data.address, data.cargos || []);
                 });
             } else {
                 addNewForm(container, type, 0, '', '', []);
@@ -467,24 +489,28 @@
                     cargosData.forEach((cargo, cargoIndex) => {
                         cargosHTML += `
                             <div class="cargo-item">
-                                <div class="cargo-item-specification">
-                                    <input type="text" placeholder="Тип груза" class="cargo-type-input" list="warehouse-${index}-cargos-${cargoIndex}">
-                                    <datalist class="warehouse-cargos-list" id="warehouse-${index}-cargos-${cargoIndex}"></datalist>
-                                    <input type="text" placeholder="Количество" class="cargo-quantity-input" value="${cargo.quantity || ''}">
-                                    ${type === 'warehouse' ? '<span class="available-quantity" style="display: none;"></span>' : ''}
-                                </div>
-                                <div class="cargo-item-buttons">
-                                    <button type="button" class="add-cargo">Добавить груз</button>
-                                    <button type="button" class="remove-cargo">Удалить груз</button>
-                                </div>
+                            <div class="cargo-item-specification">
+                                <input type="text" placeholder="Тип груза" class="cargo-type-input" 
+                                    list="warehouse-${index}-cargos-${cargoIndex}"
+                                    value="${cargo.type || ''}">
+                                <datalist class="warehouse-cargos-list" id="warehouse-${index}-cargos-${cargoIndex}"></datalist>
+                                <input type="text" placeholder="Количество" class="cargo-quantity-input" 
+                                    value="${cargo.quantity || ''}">
+                                ${type === 'warehouse' ? '<span class="available-quantity" style="display: none;"></span>' : ''}
                             </div>
-                        `;
-                    });
+                            <div class="cargo-item-buttons">
+                                <button type="button" class="add-cargo">Добавить груз</button>
+                                <button type="button" class="remove-cargo">Удалить груз</button>
+                            </div>
+                        </div>
+                    `;
+                });
                 } else {
                     cargosHTML = `
                         <div class="cargo-item">
                             <div class="cargo-item-specification">
-                                <input type="text" placeholder="Тип груза" class="cargo-type-input" list="warehouse-${index}-cargos-0">
+                                <input type="text" placeholder="Тип груза" class="cargo-type-input" 
+                                    list="warehouse-${index}-cargos-0">
                                 <datalist class="warehouse-cargos-list" id="warehouse-${index}-cargos-0"></datalist>
                                 <input type="text" placeholder="Количество" class="cargo-quantity-input">
                                 ${type === 'warehouse' ? '<span class="available-quantity" style="display: none;"></span>' : ''}
@@ -496,12 +522,15 @@
                         </div>
                     `;
                 }
-                
+                                          
                 newForm.innerHTML = `
                     <div class="form form-place">
-                        <input type="text" placeholder="Название" class="${type}-name-input" list="${type === 'warehouse' ? 'warehouses-list' : ''}" value="${nameValue}">
+                        <input type="text" placeholder="Название" class="${type}-name-input" 
+                            list="${type === 'warehouse' ? 'warehouses-list' : ''}" 
+                            value="${nameValue || ''}">
                         ${type === 'warehouse' ? '<datalist id="warehouses-list"></datalist>' : ''}
-                        <input type="text" placeholder="Адрес" title="Формат ввода: 'город, улица, дом'" class="${type}-address-input" value="${addressValue}"' : ''}>
+                        <input type="text" placeholder="Адрес" title="Формат ввода: 'город, улица, дом'" 
+                            class="${type}-address-input" value="${addressValue || ''}">
                     </div>
                     <div class="cargo-list">
                         ${cargosHTML}
@@ -509,6 +538,19 @@
                     <button type="button" class="remove-${type}">Удалить ${type === 'warehouse' ? 'склад' : 'пункт'}</button>
                 `;
                 container.appendChild(newForm);
+
+                setTimeout(() => {
+                    if (type === 'warehouse') {
+                        const warehouseNameInput = newForm.querySelector('.warehouse-name-input');
+                        if (warehouseNameInput.value) {
+                            updateWarehouseCargosList(warehouseNameInput.value, newForm);
+                        } else {
+                            updateFormCargosList(newForm);
+                        }
+                    } else {
+                        updateFormCargosList(newForm);
+                    }
+                }, 0);
 
                 // Добавляем обработчики
                 const addCargoButtons = newForm.querySelectorAll('.add-cargo');
@@ -526,12 +568,20 @@
                 removeButton.addEventListener('click', () => {
                     container.removeChild(newForm);
                     saveFormDataToCookies();
+                    // При удалении формы обновляем списки грузов
+                    if (type === 'warehouse') {
+                        updateAllWarehouseCargosLists();
+                    } else {
+                        updateAllDestinationCargosLists();
+                    }
                 });
 
                 if (type === 'warehouse') {
                     const nameInput = newForm.querySelector('.warehouse-name-input');
                     nameInput.addEventListener('change', function() {
                         handleWarehouseSelection(this);
+                        // При изменении склада обновляем списки грузов
+                        updateAllWarehouseCargosLists();
                     });
                     
                     const cargoTypeInputs = newForm.querySelectorAll('.cargo-type-input');
@@ -540,18 +590,38 @@
                             handleWarehouseCargoSelection(this);
                         });
                     });
+                } else {
+                    const cargoTypeInputs = newForm.querySelectorAll('.cargo-type-input');
+                    cargoTypeInputs.forEach(input => {
+                        input.addEventListener('change', function() {
+                            // Для пунктов назначения просто обновляем списки
+                            updateFormCargosList(this.closest('.destination-form'));
+                        });
+                    });
                 }
 
                 const inputs = newForm.querySelectorAll('input');
                 inputs.forEach(input => {
                     input.addEventListener('input', saveFormDataToCookies);
                 });
-            }
+
+                    // Обновляем списки грузов для новой формы
+                    if (type === 'warehouse') {
+                        updateAllWarehouseCargosLists();
+                    } else {
+                        updateAllDestinationCargosLists();
+                    }
+                }
 
             function addCargoItem(e) {
-                const cargoList = e.target.closest('.cargo-list');
-                const isWarehouse = e.target.closest('.warehouse-form') !== null;
-                const warehouseForm = e.target.closest('.warehouse-form');
+                // Получаем элемент, на который было нажатие (может быть либо кнопка, либо событие)
+                const target = e.target || e;
+                const cargoList = target.closest('.cargo-list');
+                
+                if (!cargoList) return;
+                
+                const isWarehouse = target.closest('.warehouse-form') !== null;
+                const warehouseForm = target.closest('.warehouse-form');
                 const warehouseIndex = warehouseForm ? warehouseForm.id.split('-')[2] : '0';
                 const cargoCount = cargoList.querySelectorAll('.cargo-item').length;
                 
@@ -571,9 +641,15 @@
                 `;
                 cargoList.appendChild(newCargoItem);
 
-                newCargoItem.querySelector('.add-cargo').addEventListener('click', addCargoItem);
-                newCargoItem.querySelector('.remove-cargo').addEventListener('click', removeCargoItem);
+                // Добавляем обработчики для новых кнопок
+                newCargoItem.querySelector('.add-cargo').addEventListener('click', function() {
+                    addCargoItem(this);
+                });
 
+                newCargoItem.querySelector('.remove-cargo').addEventListener('click', function() {
+                    removeCargoItem(this);
+                });
+                
                 if (isWarehouse) {
                     const cargoTypeInput = newCargoItem.querySelector('.cargo-type-input');
                     cargoTypeInput.addEventListener('change', function() {
@@ -585,26 +661,40 @@
                     });
                 }
 
+                // Обновляем списки грузов
                 if (isWarehouse && warehouseForm) {
                     const warehouseNameInput = warehouseForm.querySelector('.warehouse-name-input');
                     if (warehouseNameInput.value) {
                         updateWarehouseCargosList(warehouseNameInput.value, warehouseForm);
+                    } else {
+                        updateFormCargosList(warehouseForm);
                     }
+                } else {
+                    updateFormCargosList(newCargoItem.closest('.destination-form'));
                 }
-
-                const inputs = newCargoItem.querySelectorAll('input');
-                inputs.forEach(input => {
-                    input.addEventListener('input', saveFormDataToCookies);
-                });
 
                 saveFormDataToCookies();
             }
 
-            function removeCargoItem(e) {
-                const cargoItem = e.target.closest('.cargo-item');
-                if (cargoItem && cargoItem.parentElement.querySelectorAll('.cargo-item').length > 1) {
-                    cargoItem.parentElement.removeChild(cargoItem);
+            function removeCargoItem(button) {
+                const cargoItem = button.closest('.cargo-item');
+                if (!cargoItem) return;
+                
+                const cargoList = cargoItem.closest('.cargo-list');
+                if (!cargoList) return;
+                
+                // Проверяем, что останется хотя бы один элемент груза
+                if (cargoList.querySelectorAll('.cargo-item').length > 1) {
+                    cargoList.removeChild(cargoItem);
                     saveFormDataToCookies();
+                    
+                    // Обновляем списки грузов после удаления
+                    const form = cargoList.closest('.warehouse-form, .destination-form');
+                    if (form.classList.contains('warehouse-form')) {
+                        updateAllWarehouseCargosLists();
+                    } else {
+                        updateAllDestinationCargosLists();
+                    }
                 }
             }
         }
@@ -626,7 +716,7 @@
                 return null;
             }
 
-            return {
+            const formData = {
                 cargo_types: Array.from(document.querySelectorAll('.form-cargo-type')).map(form => {
                     const inputs = form.querySelectorAll('input');
                     return {
@@ -643,33 +733,37 @@
                 }),
                 warehouses: Array.from(document.querySelectorAll('.warehouse-form')).map(warehouse => {
                     const inputs = warehouse.querySelectorAll('.form-place input');
-                    return {
+                    const cargos = Array.from(warehouse.querySelectorAll('.cargo-item')).map(cargo => {
+                        const cargoInputs = cargo.querySelectorAll('.cargo-item-specification input');
+                        return {
+                            type: cargoInputs[0].value,
+                            quantity: cargoInputs[1].value
+                        };
+                    });
+                                    return {
                         name: inputs[0].value,
                         address: inputs[1].value,
-                        cargos: Array.from(warehouse.querySelectorAll('.cargo-item')).map(cargo => {
-                            const cargoInputs = cargo.querySelectorAll('.cargo-item-specification input');
-                            return {
-                                type: cargoInputs[0].value,
-                                quantity: cargoInputs[1].value
-                            };
-                        })
+                        cargos: cargos
                     };
                 }),
                 destinations: Array.from(document.querySelectorAll('.destination-form')).map(destination => {
                     const inputs = destination.querySelectorAll('.form-place input');
+                    const cargos = Array.from(destination.querySelectorAll('.cargo-item')).map(cargo => {
+                        const cargoInputs = cargo.querySelectorAll('.cargo-item-specification input');
+                        return {
+                            type: cargoInputs[0].value,
+                            quantity: cargoInputs[1].value
+                        };
+                    });
                     return {
                         name: inputs[0].value,
                         address: inputs[1].value,
-                        cargos: Array.from(destination.querySelectorAll('.cargo-item')).map(cargo => {
-                            const cargoInputs = cargo.querySelectorAll('.cargo-item-specification input');
-                            return {
-                                type: cargoInputs[0].value,
-                                quantity: cargoInputs[1].value
-                            };
-                        })
+                        cargos: cargos
                     };
                 })
             };
+
+            return formData;
         }
 
         function handleRequestError(error) {
@@ -728,6 +822,11 @@
                 'destination',
                 savedFormData ? savedFormData.destinations : []
             );
+
+            setTimeout(() => {
+                updateAllWarehouseCargosLists();
+                updateAllDestinationCargosLists();
+            }, 100);
 
             document.getElementById('load-db-data').addEventListener('click', loadDataFromDatabase);
             
