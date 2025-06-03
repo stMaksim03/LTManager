@@ -52,7 +52,7 @@ def load_user(user_id):
 #     }
 
 DB_CONFIG = {
-        'dbname': 'postgres',
+        'dbname': 'LTmanager',
         'user': 'postgres',
         'password': 'Polina/2023',
         'host': 'localhost',
@@ -198,6 +198,51 @@ def protected_creating_task():
     return render_template('creating-task.html')
 
 
+@app.route('/get_db_data')
+@login_required
+def get_db_data():
+    try:
+        with DatabaseManager(**DB_CONFIG) as db:
+            # Получаем данные текущего пользователя
+            user_id = current_user.id
+            
+            # Получаем типы грузов
+            products = db.get_products_by_user(user_id)
+            cargo_types = [{
+                'name': p.name,
+                'weight': p.weight
+            } for p in products]
+            
+            # Получаем склады с инвентарем
+            storages = db.get_storages_by_user(user_id)
+            warehouses = []
+            for storage in storages:
+                inventory = db.get_inventory_by_storage(storage.storage_id)
+                cargos = [{
+                    'type': item['product_name'],
+                    'quantity': item['quantity'],
+                    'available': item['quantity']  # Доступное количество равно количеству на складе
+                } for item in inventory]
+                
+                warehouses.append({
+                    'name': storage.name,
+                    'address': storage.address,
+                    'cargos': cargos
+                })
+            
+            # В данном примере типы машин не хранятся в БД, оставляем пустым
+            truck_types = []
+            
+            return jsonify({
+                'cargoTypes': cargo_types,
+                'truckTypes': truck_types,
+                'warehouses': warehouses
+            })
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
 def all_fields_filled(data):
     """Проверка заполненности всех полей"""
     # типы грузов
@@ -234,24 +279,34 @@ def validate_warehouse_quantities(warehouses, destinations):
     warehouse_cargos = {}
     destination_cargos = {}
     
+    # Сначала собираем все грузы на складах
     for warehouse in warehouses:
+        warehouse_name = warehouse['name']
         for cargo in warehouse['cargos']:
-            if cargo['type'] in warehouse_cargos:
-                warehouse_cargos[cargo['type']] += float(cargo['quantity'])
+            key = (warehouse_name, cargo['type'])
+            if key in warehouse_cargos:
+                warehouse_cargos[key] += float(cargo['quantity'])
             else:
-                warehouse_cargos[cargo['type']] = float(cargo['quantity'])
+                warehouse_cargos[key] = float(cargo['quantity'])
     
+    # Затем собираем все грузы в пунктах назначения
     for destination in destinations:
         for cargo in destination['cargos']:
-            if cargo['type'] not in warehouse_cargos:
-                return False
-            elif cargo['type'] in destination_cargos:
+            if cargo['type'] in destination_cargos:
                 destination_cargos[cargo['type']] += float(cargo['quantity'])
             else:
                 destination_cargos[cargo['type']] = float(cargo['quantity'])
-
-    for destination_cargo, dest_cargo_quantity in destination_cargos.items():
-        if float(dest_cargo_quantity) > warehouse_cargos[destination_cargo]:
+    
+    # Проверяем, что для каждого груза в пункте назначения есть достаточное количество на складах
+    for dest_cargo, dest_cargo_quantity in destination_cargos.items():
+        total_available = 0
+        
+        # Суммируем количество этого груза на всех складах
+        for (wh_name, cargo_type), quantity in warehouse_cargos.items():
+            if cargo_type == dest_cargo:
+                total_available += quantity
+        
+        if float(dest_cargo_quantity) > total_available:
             return False
     
     return True

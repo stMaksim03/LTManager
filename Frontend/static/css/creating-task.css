@@ -189,7 +189,7 @@ input[list="cargo-types-list"]::-webkit-calendar-picker-indicator {
     background-color: #3b83f6af;
 }
 
-.clear-button {
+.clear-button, .load-db-button {
     display: inline-block;
     background-color: #e0e0e0;
     padding: 12px 24px;
@@ -201,12 +201,17 @@ input[list="cargo-types-list"]::-webkit-calendar-picker-indicator {
     color: #656565;
 }
 
-.clear-button:hover {
+.clear-button:hover, .load-db-button:hover {
     background-color: #cfcfcf;
 }
 
-.clear-button:active {
+.clear-button:active, .load-db-button:active {
     background-color: #bbbbbb;
+}
+
+.available-quantity {
+    font-size: 12px;
+    margin: auto;
 }
 
 input[placeholder="Адрес"] {
