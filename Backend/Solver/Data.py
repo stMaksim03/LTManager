@@ -140,6 +140,16 @@ class DatabaseManager:
         result = self._execute_and_fetchone(query, (username, email, password_hash))
         return User(**result)
     
+    def authenticate_user(self, email: str, password_hash: str) -> Optional[User]:
+        query = """
+        SELECT user_id, username, email, is_active 
+        FROM users 
+        WHERE email = %s AND password_hash = %s;
+        """
+        self.cursor.execute(query, (email, password_hash))
+        result = self.cursor.fetchone()
+        return User(**result) if result else None
+    
     def get_user_by_id(self, user_id: str) -> Optional[User]:
         query = """
         SELECT user_id, username, email, password_hash, created_at, last_login, is_active
