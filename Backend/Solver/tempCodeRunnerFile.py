@@ -1,3 +1,4 @@
+
 from typing import List, Dict, Optional, Tuple
 import json
 from dataclasses import dataclass
@@ -7,7 +8,7 @@ from datetime import datetime
 import os
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path='DB.env')  # Загружает переменные из DB.env
+load_dotenv()  # Загружает переменные из DB.env
 
 DB_CONFIG = {
     'dbname': os.getenv('DB_NAME'),
@@ -440,96 +441,22 @@ class DatabaseManager:
         self.cursor.close()
         self.conn.close()
         
-# Пример создания и работы с таблицами
-
+        
+# Пример создания и работы с транспортом
 with DatabaseManager(**DB_CONFIG) as db:
-    print("\n--- USERS ---")
-    user = db.create_user(
-        username="vladimir_test",
-        email="vlad@example.com",
-        password_hash="hashed_password"
+    # Создаем транспорт
+    truck = db.create_transport(
+        user_id="123e4567-e89b-12d3-a456-426614174000",
+        name="Грузовик",
+        weight_lift=5000.0,
+        aux_info={"type": "грузовой", "fuel": "дизель"}
     )
-    print(f"User: {user.username} ({user.user_id})")
-
-    print("\n--- PRODUCTS ---")
-    product = db.create_product(
-        user_id=user.user_id,
-        name="Шестерня",
-        weight=2.5,
-        aux_info={"material": "сталь", "category": "механика"}
-    )
-    print(f"Product: {product.name} ({product.product_id})")
-
-    print("\n--- TRANSPORT ---")
-    transport = db.create_transport(
-        user_id=user.user_id,
-        name="IVECO Daily",
-        weight_lift=3500.0,
-        aux_info={"type": "фургон", "fuel": "дизель"}
-    )
-    print(f"Transport: {transport.name} ({transport.transport_id})")
-
-    print("\n--- WAREHOUSES ---")
-    warehouse = db.create_warehouse(
-        user_id=user.user_id,
-        name="Склад №1",
-        address="ул. Промышленная, 1",
-        lat=55.7558,
-        lon=37.6173,
-        aux_info={"floor": 1}
-    )
-    print(f"Warehouse: {warehouse.name} ({warehouse.warehouse_id})")
-
-    print("\n--- STORAGE INVENTORY ---")
-    inventory = db.create_inventory(
-        warehouse_id=warehouse.warehouse_id,
-        product_id=product.product_id,
-        quantity=100
-    )
-    print(f"Inventory: {inventory.inventory_id}, Кол-во: {inventory.quantity}")
-
-    print("\n--- ROUTES ---")
-    point = db.create_collection_point(
-        user_id=user.user_id,
-        name="Точка сбора",
-        address="ул. Получателя, 5",
-        lat=55.7512,
-        lon=37.6184,
-        aux_info={"type": "финальный пункт"}
-    )
-
-    route = db.create_route(
-        user_id=user.user_id,
-        warehouse_id=warehouse.warehouse_id,
-        point_id=point.point_id,
-        distance=12.5,
-        duration=30.0,
-        path_coords=[
-            (55.7558, 37.6173), 
-            (55.7512, 37.6184)
-        ],
-        waypoints=[{"type": "custom", "lat": 55.753, "lon": 37.616}]
-    )
-    print(f"Route: {route.route_id}, {route.distance} км, {route.duration} мин")
-
-    print("\nВсе данные успешно добавлены и получены")
-    user_id = user.user_id  # Сохраняем user_id для дальнейшего удаления
+    print(f"Создан транспорт: {truck.name} (ID: {truck.transport_id})")
     
-    # Проверяем, что данные корректно сохранены
-    found_user = db.get_user_by_id(user.user_id)
-    found_product = db.get_product_by_id(product.product_id)
-    found_transport = db.get_transport_by_id(transport.transport_id)
-    found_warehouse = db.get_warehouse_by_id(warehouse.warehouse_id)
-    found_inventory = db.get_inventory_by_id(inventory.inventory_id)
-    found_point = db.get_collection_point_by_id(point.point_id)
-    found_route = db.get_route_by_id(route.route_id)
+    # Получаем транспорт по ID
+    same_truck = db.get_transport_by_id(truck.transport_id)
+    print(f"Получен транспорт: {same_truck.name}, грузоподъемность: {same_truck.weight_lift}кг")
     
-    print(f"\n{found_user}, \n\n{found_product}, \n\n{found_transport}, \n\n{found_warehouse}, \n\n{found_inventory}, \n\n{found_point}, \n\n{found_route}")
-    
-    # Удаляем пользователя
-    is_deleted = db.delete_user(user_id)
-    
-    if is_deleted:
-        print(f"Пользователь {user_id} успешно удалён.")
-    else:
-        print(f"Пользователь {user_id} не найден или не удалён.")
+    # Удаляем транспорт
+    if db.delete_transport(truck.transport_id):
+        print(f"Транспорт ID {truck.transport_id} удален")
