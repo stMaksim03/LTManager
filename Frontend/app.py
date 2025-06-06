@@ -7,6 +7,9 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 import sys
 from pathlib import Path
 
+import os
+from dotenv import load_dotenv
+
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
@@ -43,21 +46,15 @@ def load_user(user_id):
             return User(user_data.user_id, user_data.username)
     return None
 
-# DB_CONFIG = {
-#         'dbname': 'postgres',
-#         'user': 'postgres',
-#         'password': 'raid',
-#         'host': 'localhost',
-#         'port': '5432'
-#     }
+load_dotenv(dotenv_path='C:\MAI\GitHub\LTManager\DB.env')  # Загружает переменные из DB.env
 
 DB_CONFIG = {
-        'dbname': 'LTmanager',
-        'user': 'postgres',
-        'password': 'Polina/2023',
-        'host': 'localhost',
-        'port': '5432'
-    }
+    'dbname': os.getenv('DB_NAME'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'host': os.getenv('DB_HOST'),
+    'port': os.getenv('DB_PORT')
+}
 
 
 @app.route('/')
@@ -206,37 +203,63 @@ def get_db_data():
             # Получаем данные текущего пользователя
             user_id = current_user.id
             
-            # Получаем типы грузов
-            products = db.get_products_by_user(user_id)
-            cargo_types = [{
-                'name': p.name,
-                'weight': p.weight
-            } for p in products]
+            # Получаем продукты пользователя
+            products = db._execute_and_fetchall("""
+                SELECT product_id, name, weight 
+                FROM products 
+                WHERE user_id = %s;
+            """, (user_id,))
             
-            # Получаем склады с инвентарем
-            storages = db.get_storages_by_user(user_id)
-            warehouses = []
-            for storage in storages:
-                inventory = db.get_inventory_by_storage(storage.storage_id)
-                cargos = [{
-                    'type': item['product_name'],
-                    'quantity': item['quantity'],
-                    'available': item['quantity']  # Доступное количество равно количеству на складе
-                } for item in inventory]
+            # Получаем склады пользователя
+            warehouses = db._execute_and_fetchall("""
+                SELECT warehouse_id, name, address, 
+                       ST_Y(coordinates::geometry) as lat, 
+                       ST_X(coordinates::geometry) as lon
+                FROM warehouses 
+                WHERE user_id = %s;
+            """, (user_id,))
+            
+            # Получаем инвентарь для каждого склада
+            warehouses_data = []
+            for warehouse in warehouses:
+                inventory = db._execute_and_fetchall("""
+                    SELECT p.name as product_name, si.quantity 
+                    FROM storage_inventory si
+                    JOIN products p ON si.product_id = p.product_id
+                    WHERE si.warehouse_id = %s;
+                """, (warehouse['warehouse_id'],))
                 
-                warehouses.append({
-                    'name': storage.name,
-                    'address': storage.address,
-                    'cargos': cargos
+                warehouses_data.append({
+                    'name': warehouse['name'],
+                    'address': warehouse['address'],
+                    'cargos': [{
+                        'type': item['product_name'],
+                        'quantity': item['quantity'],
+                        'available': item['quantity']
+                    } for item in inventory]
                 })
-            
-            # В данном примере типы машин не хранятся в БД, оставляем пустым
-            truck_types = []
+
+            # Получаем транспорт пользователя (если нужен)
+            transports = db._execute_and_fetchall("""
+                SELECT name, weight_lift as capacity 
+                FROM transport 
+                WHERE user_id = %s;
+            """, (user_id,))
+
+            # Получаем пункты приема пользователя
+            collection_points = db._execute_and_fetchall("""
+                SELECT point_id, name, address, 
+                       ST_Y(coordinates::geometry) as lat, 
+                       ST_X(coordinates::geometry) as lon
+                FROM collection_points 
+                WHERE user_id = %s;
+            """, (user_id,))
             
             return jsonify({
-                'cargoTypes': cargo_types,
-                'truckTypes': truck_types,
-                'warehouses': warehouses
+                'cargoTypes': [{'name': p['name'], 'weight': p['weight']} for p in products],
+                'truckTypes': [{'name': t['name'], 'capacity': t['capacity']} for t in transports],
+                'warehouses': warehouses_data,
+                'destinations': [{'name': cp['name'], 'address': cp['address'],} for cp in collection_points]
             })
             
     except Exception as e:

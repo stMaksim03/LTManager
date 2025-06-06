@@ -34,11 +34,14 @@
         <form class="container">
             <h2>Типы машин</h2>
             <div id="container-truck-type">
-                <div class="form form-truck-type" id="form-truck-type-0">
-                    <input type="text" placeholder="Наименование" class="truck-name-input" list="truck-types-list">
-                    <datalist id="truck-types-list"></datalist>
-                    <input type="text" placeholder="Грузоподъемность/т" class="truck-capacity-input">
-                    <button type="button" class="bin remove-form-truck-type"></button>
+                <div class="truck-input-row">
+                    <input type="text" placeholder="Наименование" class="${nameInputClass}" list="${datalistId}" value="${nameValue}">
+                    <datalist id="${datalistId}"></datalist>
+                    <input type="text" placeholder="${fillingLable}" class="${fillingInputClass}" value="${fillingValue}">
+                    <button type="button" class="bin remove-${formClass}"></button>
+                </div>
+                <div class="truck-input-row">
+                    <input type="text" placeholder="Средний расход топлива на 100 км" class="truck-fuel-input" value="${fuelValue}">
                 </div>
             </div>
             <button type="button" class="add-form-button" id="add-form-truck-type">Добавить еще</button>
@@ -80,7 +83,8 @@
             <div id="container-destination">
                 <div class="destination-form" id="destination-form-0">
                     <div class="form form-place">
-                        <input type="text" placeholder="Название" class="destination-name-input">
+                         <input type="text" placeholder="Название" class="destination-name-input" list="destinations-list">
+                            <datalist id="destinations-list"></datalist>
                         <input type="text" placeholder="Адрес" title="Формат ввода: 'город, улица, дом'" class="destination-address-input">
                     </div>
                     <div class="cargo-list">
@@ -115,7 +119,8 @@
         let dbData = {
             cargoTypes: [],
             truckTypes: [],
-            warehouses: []
+            warehouses: [],
+            destinations: []
         };
 
         // Функции для работы с cookies
@@ -209,6 +214,7 @@
                 const option = document.createElement('option');
                 option.value = warehouse.name;
                 option.dataset.address = warehouse.address;
+                option.dataset.cargos = JSON.stringify(warehouse.cargos);
                 warehousesList.appendChild(option);
             });
         }
@@ -277,6 +283,21 @@
             });
         }
 
+        function updateDestinationsList() {
+            const destinationsList = document.getElementById('destinations-list');
+            if (!destinationsList) return;
+            
+            destinationsList.innerHTML = '';
+            console.log(dbData.destinations)
+            dbData.destinations.forEach(destination => {
+                const option = document.createElement('option');
+                option.value = destination.name;
+                option.dataset.address = destination.address;
+                option.dataset.cargos = JSON.stringify(destination.cargos);
+                destinationsList.appendChild(option);
+            });
+        }
+
         // Обработчики событий для автоматического заполнения полей
         function handleCargoTypeSelection(input) {
             const weightInput = input.closest('.form-cargo-type').querySelector('.cargo-weight-input');
@@ -333,6 +354,21 @@
             }
         }
 
+        function handleDestinationSelection(input) {
+            const destinationForm = input.closest('.destination-form');
+            const addressInput = destinationForm.querySelector('.destination-address-input');
+            const selectedOption = document.querySelector(`#destinations-list option[value="${input.value}"]`);
+            
+            if (selectedOption) {
+                addressInput.value = selectedOption.dataset.address || '';
+            } else {
+                addressInput.value = '';
+                updateFormCargosList(destinationForm);
+            }
+            
+            updateCargoTypesList();
+        }
+
         // Функция для загрузки данных из БД
         async function loadDataFromDatabase() {
             const statusElement = document.getElementById('load-status');
@@ -341,21 +377,44 @@
             
             try {
                 const response = await axios.get('/get_db_data');
-                dbData = response.data;
-                
-                // Обновляем все списки
-                updateCargoTypesList();
-                updateTruckTypesList();
-                updateWarehousesList();
-                
-                statusElement.textContent = 'Данные успешно загружены';
-                statusElement.style.color = 'green';
-                
-                Cookies.set('dbData', JSON.stringify(dbData), { expires: 1 });
+                if (response.data) {
+                    dbData = {
+                        cargoTypes: response.data.cargoTypes || [],
+                        truckTypes: response.data.truckTypes || [],
+                        warehouses: response.data.warehouses || [],
+                        destinations: response.data.destinations || []
+                    };
+
+                    console.log(dbData)
+                    
+                    // Обновляем все списки
+                    updateCargoTypesList();
+                    updateTruckTypesList();
+                    updateWarehousesList();
+                    updateDestinationsList();
+                    
+                    statusElement.textContent = 'Данные успешно загружены';
+                    statusElement.style.color = 'green';
+
+                    if (dbData.cargoTypes.length == 0 && dbData.truckTypes.length == 0 && dbData.warehouses.length == 0 && dbData.destinations.length == 0) {
+                        statusElement.textContent = 'Данные в БД отсутствуют';
+                        statusElement.style.color = '#3b82f6';
+                    }
+                    
+                    Cookies.set('dbData', JSON.stringify(dbData), { expires: 1 });
+                } else {
+                    throw new Error('Нет данных в ответе');
+                }
             } catch (error) {
                 console.error('Ошибка загрузки данных:', error);
                 statusElement.textContent = 'Ошибка загрузки данных';
                 statusElement.style.color = 'red';
+
+                if (error.response && error.response.data && error.response.data.message) {
+                    alert(`Ошибка: ${error.response.data.message}`);
+                } else {
+                    alert('Не удалось загрузить данные из БД. Проверьте подключение и попробуйте снова.');
+                }
             }
         }
 
@@ -394,19 +453,23 @@
 
             if (initialData.length > 0) {
                 initialData.forEach((data, index) => {
-                    addNewForm(container, formClass, index, data.name, data.weight || data.capacity, fillingLable);
+                    if (formClass === 'form-truck-type') {
+                        addNewForm(container, formClass, index, data.name, data.capacity, data.fuel || '', fillingLable);
+                    } else {
+                        addNewForm(container, formClass, index, data.name, data.weight || data.capacity, fillingLable);
+                    }
                 });
             } else {
-                addNewForm(container, formClass, 0, '', '', fillingLable);
+                addNewForm(container, formClass, 0, '', '', '', fillingLable);
             }
 
             addButton.addEventListener('click', () => {
-                addNewForm(container, formClass, formCount, '', '', fillingLable);
+                addNewForm(container, formClass, formCount, '', '', '', fillingLable);
                 formCount++;
                 saveFormDataToCookies();
             });
 
-            function addNewForm(container, formClass, index, nameValue, fillingValue, fillingLable) {
+            function addNewForm(container, formClass, index, nameValue, fillingValue, fuelValue = '', fillingLable) {
                 const newForm = document.createElement('div');
                 newForm.classList.add('form', formClass);
                 newForm.id = `${formClass}-${index}`;
@@ -415,13 +478,27 @@
                 const nameInputClass = isCargoType ? 'cargo-name-input' : 'truck-name-input';
                 const fillingInputClass = isCargoType ? 'cargo-weight-input' : 'truck-capacity-input';
                 const datalistId = isCargoType ? 'cargo-types-list' : 'truck-types-list';
-                
-                newForm.innerHTML = `
-                    <input type="text" placeholder="Наименование" class="${nameInputClass}" list="${datalistId}" value="${nameValue}">
-                    <datalist id="${datalistId}"></datalist>
-                    <input type="text" placeholder="${fillingLable}" class="${fillingInputClass}" value="${fillingValue}">
-                    <button type="button" class="bin remove-${formClass}"></button>
-                `;
+                        
+                if (isCargoType) {
+                    newForm.innerHTML = `
+                        <input type="text" placeholder="Наименование" class="${nameInputClass}" list="${datalistId}" value="${nameValue}">
+                        <datalist id="${datalistId}"></datalist>
+                        <input type="text" placeholder="${fillingLable}" class="${fillingInputClass}" value="${fillingValue}">
+                        <button type="button" class="bin remove-${formClass}"></button>
+                    `;
+                } else {
+                    newForm.innerHTML = `
+                        <div class="truck-input-row">
+                            <input type="text" placeholder="Наименование" class="${nameInputClass}" list="${datalistId}" value="${nameValue}">
+                            <datalist id="${datalistId}"></datalist>
+                            <input type="text" placeholder="${fillingLable}" class="${fillingInputClass}" value="${fillingValue}">
+                            <button type="button" class="bin remove-${formClass}"></button>
+                        </div>
+                        <div class="truck-input-row">
+                            <input type="text" placeholder="Средний расход топлива на 100 км" class="truck-fuel-input" value="${fuelValue}">
+                        </div>
+                    `;
+                }
                 container.appendChild(newForm);
 
                 const removeButton = newForm.querySelector(`.remove-${formClass}`);
@@ -432,11 +509,11 @@
                     }
                     saveFormDataToCookies();
                 });
-
+                
                 const nameInput = newForm.querySelector(`.${nameInputClass}`);
                 nameInput.addEventListener('input', () => {
                     if (isCargoType) {
-                        updateCargoTypesList(); // Обновляем все списки при изменении типа груза
+                        updateCargoTypesList();
                     }
                     saveFormDataToCookies();
                 });
@@ -526,9 +603,9 @@
                 newForm.innerHTML = `
                     <div class="form form-place">
                         <input type="text" placeholder="Название" class="${type}-name-input" 
-                            list="${type === 'warehouse' ? 'warehouses-list' : ''}" 
+                            list="${type === 'warehouse' ? 'warehouses-list' : 'destinations-list'}" 
                             value="${nameValue || ''}">
-                        ${type === 'warehouse' ? '<datalist id="warehouses-list"></datalist>' : ''}
+                        ${type === 'warehouse' ? '<datalist id="warehouses-list"></datalist>' : '<datalist id="destinations-list"></datalist>'}
                         <input type="text" placeholder="Адрес" title="Формат ввода: 'город, улица, дом'" 
                             class="${type}-address-input" value="${addressValue || ''}">
                     </div>
@@ -561,7 +638,9 @@
                 });
 
                 removeCargoButtons.forEach(btn => {
-                    btn.addEventListener('click', removeCargoItem);
+                    btn.addEventListener('click', function(e) {
+                        removeCargoItem(e.target); // Передаем сам элемент кнопки, а не событие
+                    });
                 });
 
                 const removeButton = newForm.querySelector(`.remove-${type}`);
@@ -575,6 +654,13 @@
                         updateAllDestinationCargosLists();
                     }
                 });
+
+                if (type === 'destination') {
+                    const nameInput = newForm.querySelector('.destination-name-input');
+                    nameInput.addEventListener('change', function() {
+                        handleDestinationSelection(this);
+                    });
+                }
 
                 if (type === 'warehouse') {
                     const nameInput = newForm.querySelector('.warehouse-name-input');
@@ -728,7 +814,8 @@
                     const inputs = form.querySelectorAll('input');
                     return {
                         name: inputs[0].value,
-                        capacity: inputs[1].value
+                        capacity: inputs[1].value,
+                        fuel: inputs[2].value  // Добавляем расход топлива
                     };
                 }),
                 warehouses: Array.from(document.querySelectorAll('.warehouse-form')).map(warehouse => {

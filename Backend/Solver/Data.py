@@ -142,7 +142,7 @@ class DatabaseManager:
     
     def authenticate_user(self, email: str, password_hash: str) -> Optional[User]:
         query = """
-        SELECT user_id, username, email, is_active 
+        SELECT user_id, username, email, password_hash, created_at, last_login, is_active
         FROM users 
         WHERE email = %s AND password_hash = %s;
         """
