@@ -13,9 +13,7 @@
     <div class="route">
         <aside class="sidebar">
             <h2>Маршрут</h2>
-            <ul id="warehouse-list" class="list">
-            </ul>
-            <ul id="destination-list" class="list">
+            <ul id="trucks-list" class="list">
             </ul>
         </aside>
 
@@ -44,6 +42,8 @@
 {% endblock %}
 
 {% block extra_js %}
+    <script src="/static/js/router.js"></script>
+
     <script>
         ymaps.ready(initMap);
 
@@ -75,6 +75,8 @@
                     destinations.forEach(destination => {
                         geocodeAddress(destination.address, 'Пункт выдачи: ' + destination.name, map, 'islands#redIcon');
                     });
+
+                    updateTrucksList(trucks, warehouses, destinations);
                 })
                 .catch(error => console.error('Error fetching data:', error));
         }
@@ -108,33 +110,90 @@
             });
         }
 
+        function updateTrucksList(trucks, warehouses, destinations) {
+            const trucksList = document.getElementById('trucks-list');
+            trucksList.innerHTML = '';
+            if (trucks.length === 0) {
+                const item = document.createElement('li');
+                item.className = 'truck-item';
+                const warehousesList = document.createElement('ul');
+                warehousesList.className = 'warehouse-list';
+                warehousesList.innerHTML = '<li class="subheader">Склады:</li>';
+                
+                warehouses.forEach(warehouse => {
+                    const warehouseItem = document.createElement('li');
+                    warehouseItem.textContent = `${warehouse.name}: ${warehouse.address}`;
+                    warehousesList.appendChild(warehouseItem);
+                });
+
+                const destinationsList = document.createElement('ul');
+                destinationsList.className = 'destination-list';
+                destinationsList.innerHTML = '<li class="subheader">Пункты выдачи:</li>';
+                
+                destinations.forEach(destination => {
+                    const destinationItem = document.createElement('li');
+                    destinationItem.textContent = `${destination.name}: ${destination.address}`;
+                    destinationsList.appendChild(destinationItem);
+                });
+                
+                item.appendChild(warehousesList);
+                item.appendChild(destinationsList);
+                trucksList.appendChild(item);
+            } else {
+                trucks.forEach((truck, index) => {
+                    const truckItem = document.createElement('li');
+                    truckItem.className = 'truck-item';
+                    truckItem.innerHTML = `
+                        <div class="truck-header">
+                            <span>${truck.name}</span>
+                        </div>
+                    `;
+
+                    if (index === 0) {
+                        const warehousesList = document.createElement('ul');
+                        warehousesList.className = 'warehouse-list';
+                        warehousesList.innerHTML = '<li class="subheader">Склады:</li>';
+                        
+                        warehouses.forEach(warehouse => {
+                            const warehouseItem = document.createElement('li');
+                            warehouseItem.textContent = `${warehouse.name}: ${warehouse.address}`;
+                            warehousesList.appendChild(warehouseItem);
+                        });
+
+                        const destinationsList = document.createElement('ul');
+                        destinationsList.className = 'destination-list';
+                        destinationsList.innerHTML = '<li class="subheader">Пункты выдачи:</li>';
+                        
+                        destinations.forEach(destination => {
+                            const destinationItem = document.createElement('li');
+                            destinationItem.textContent = `${destination.name}: ${destination.address}`;
+                            destinationsList.appendChild(destinationItem);
+                        });
+                        
+                        truckItem.appendChild(warehousesList);
+                        truckItem.appendChild(destinationsList);
+                    }
+
+                    trucksList.appendChild(truckItem);
+                })
+            }
+        }
+
+        window.buildRoutes = function() {
+            const script = document.createElement('script');
+            script.src = '/static/js/router.js';
+            document.body.appendChild(script);
+        };
+
         fetch('http://localhost:5000/data')
             .then(response => response.json())
             .then(data => {
-                console.log(data)
                 const { warehouses, destinations, trucks } = data;
-                let pathLength = '...';
-                let totalCost = '...';
-
-                const destinationList = document.getElementById('destination-list');
-                const warehouseList = document.getElementById('warehouse-list');
-                warehouses.forEach(warehouse => {
-                    const li = document.createElement('li');
-                    li.textContent = `${warehouse.name}: ${warehouse.address}`;
-                    warehouseList.appendChild(li);
-                });
-
-                destinations.forEach(destination => {
-                    const li = document.createElement('li');
-                    li.textContent = `${destination.name}: ${destination.address}`;
-                    destinationList.appendChild(li);
-                });
-
-                document.getElementById('path-length').textContent = `Длина пути: ${pathLength}`;
+                
+                // Обновляем статистику
                 document.getElementById('warehouse-count').textContent = `Количество складов: ${warehouses.length}`;
                 document.getElementById('destination-count').textContent = `Количество пунктов приема: ${destinations.length}`;
                 document.getElementById('truck-count').textContent = `Количество машин: ${trucks.length}`;
-                document.getElementById('total-cost').textContent = `Суммарные затраты на доставку: ${totalCost}`;
             })
             .catch(error => console.error('Error fetching data:', error));
 

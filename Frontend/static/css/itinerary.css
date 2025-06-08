@@ -103,13 +103,31 @@ button:active {
     background-color: #3b83f6af;
 }
 
-.list li {
+#trucks-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+#trucks-list > li {
+    padding-left: 0;
+}
+
+#trucks-list > li:before {
+    content: none;
+}
+
+.warehouse-list, .destination-list {
+    list-style: none;
+    padding-left: 25px;
+}
+
+.list li, .warehouse-list li, .destination-list li {
     padding: 8px 0;
     position: relative;
     padding-left: 25px;
 }
 
-.list li:before {
+.list li:before, .warehouse-list li:before, .destination-list li:before {
     content: "•";
     font-size: 50px;
     position: absolute;
@@ -117,12 +135,24 @@ button:active {
     transform: translateY(-25%);
 }
 
-#warehouse-list li:before {
+.warehouse-list li:before {
     color: #3b82f6;
 }
 
-#destination-list  li:before {
+.destination-list li:before {
     color: red;
+}
+
+.truck-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.subheader {
+    font-weight: bold;
+    margin-top: 5px;
 }
 
 @media (min-width: 1500px) {

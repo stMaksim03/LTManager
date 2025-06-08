@@ -201,6 +201,7 @@
                 const option = document.createElement('option');
                 option.value = type.name;
                 option.dataset.capacity = type.capacity;
+                option.dataset.fuel = type.fuel;
                 truckTypesList.appendChild(option);
             });
         }
@@ -312,10 +313,12 @@
 
         function handleTruckTypeSelection(input) {
             const capacityInput = input.closest('.form-truck-type').querySelector('.truck-capacity-input');
+            const fuelInput = input.closest('.form-truck-type').querySelector('.truck-fuel-input');
             const selectedOption = document.querySelector(`#truck-types-list option[value="${input.value}"]`);
             
             if (selectedOption) {
                 capacityInput.value = selectedOption.dataset.capacity || '';
+                fuelInput.value = selectedOption.dataset.fuel || '';
             } else {
                 capacityInput.value = '';
             }
@@ -454,7 +457,7 @@
             if (initialData.length > 0) {
                 initialData.forEach((data, index) => {
                     if (formClass === 'form-truck-type') {
-                        addNewForm(container, formClass, index, data.name, data.capacity, data.fuel || '', fillingLable);
+                        addNewForm(container, formClass, index, data.name, data.capacity, data.fuel, fillingLable);
                     } else {
                         addNewForm(container, formClass, index, data.name, data.weight || data.capacity, fillingLable);
                     }
@@ -469,7 +472,7 @@
                 saveFormDataToCookies();
             });
 
-            function addNewForm(container, formClass, index, nameValue, fillingValue, fuelValue = '', fillingLable) {
+            function addNewForm(container, formClass, index, nameValue, fillingValue, fuelValue, fillingLable) {
                 const newForm = document.createElement('div');
                 newForm.classList.add('form', formClass);
                 newForm.id = `${formClass}-${index}`;

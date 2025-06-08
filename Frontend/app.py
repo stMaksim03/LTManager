@@ -241,7 +241,7 @@ def get_db_data():
 
             # Получаем транспорт пользователя (если нужен)
             transports = db._execute_and_fetchall("""
-                SELECT name, weight_lift as capacity 
+                SELECT name, weight_lift as capacity, fuel_consumption as fuel
                 FROM transport 
                 WHERE user_id = %s;
             """, (user_id,))
@@ -257,11 +257,34 @@ def get_db_data():
             
             return jsonify({
                 'cargoTypes': [{'name': p['name'], 'weight': p['weight']} for p in products],
-                'truckTypes': [{'name': t['name'], 'capacity': t['capacity']} for t in transports],
+                'truckTypes': [{'name': t['name'], 'capacity': t['capacity'], 'fuel': t['fuel']} for t in transports],
                 'warehouses': warehouses_data,
                 'destinations': [{'name': cp['name'], 'address': cp['address'],} for cp in collection_points]
             })
             
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/api/logistics')
+def get_logistics_data():
+    global data_storage
+    return jsonify({
+        'warehouses': data_storage.get('warehouses', []),
+        'destinations': data_storage.get('destinations', [])
+    })
+
+
+@app.route('/api/save-routes', methods=['POST'])
+def save_routes():
+    try:
+        routes_data = request.get_json()
+        if not routes_data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+        
+        print("Received routes data:", routes_data)  # Для отладки
+        
+        return jsonify({'success': True, 'message': 'Routes saved successfully'}), 200
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
