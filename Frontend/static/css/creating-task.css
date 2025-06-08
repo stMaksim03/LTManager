@@ -112,6 +112,33 @@ input[list="cargo-types-list"]::-webkit-calendar-picker-indicator {
     font-size: 25px;
 }
 
+.truck-input-row {
+    display: flex;
+    align-items: center;
+    margin: 5px 3px;
+    width: 100%;
+}
+
+.truck-input-row input {
+    flex-grow: 1;
+    margin: 0 5px;
+    padding: 10px;
+    border: none;
+    border-radius: 3px;
+    background-color: #ebebeb;
+}
+
+.form-truck-type {
+    display: flex;
+    flex-direction: column;
+    padding: 15px !important;
+}
+
+.truck-fuel-input {
+    transform-origin: left;
+    transform: scaleX(1.015);
+}
+
 .add-form-button {
     display: block;
     margin-top: 10px;
