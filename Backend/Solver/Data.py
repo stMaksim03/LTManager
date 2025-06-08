@@ -44,6 +44,7 @@ class Transport:
     user_id: str
     name: str
     weight_lift: float
+    fuel_consumption: float
     aux_info: Dict
     created_at: datetime
     updated_at: datetime
@@ -187,18 +188,18 @@ class DatabaseManager:
         return self.cursor.rowcount > 0
     
     # Transport CRUD methods
-    def create_transport(self, user_id: str, name: str, weight_lift: float, aux_info: Dict = None) -> Transport:
+    def create_transport(self, user_id: str, name: str, weight_lift: float, fuel_consumption: float, aux_info: Dict = None) -> Transport:
         query = """
-        INSERT INTO transport (user_id, name, weight_lift, aux_info)
-        VALUES (%s, %s, %s, %s)
-        RETURNING transport_id, user_id, name, weight_lift, aux_info, created_at, updated_at;
+        INSERT INTO transport (user_id, name, weight_lift, fuel_consumption, aux_info)
+        VALUES (%s, %s, %s, %s, %s)
+        RETURNING transport_id, user_id, name, weight_lift, fuel_consumption, aux_info, created_at, updated_at;
         """
-        result = self._execute_and_fetchone(query, (user_id, name, weight_lift, json.dumps(aux_info or {})))
+        result = self._execute_and_fetchone(query, (user_id, name, weight_lift, fuel_consumption, json.dumps(aux_info or {})))
         return Transport(**result)
     
     def get_transport_by_id(self, transport_id: int) -> Optional[Transport]:
         query = """
-        SELECT transport_id, user_id, name, weight_lift, aux_info, created_at, updated_at
+        SELECT transport_id, user_id, name, weight_lift, fuel_consumption, aux_info, created_at, updated_at
         FROM transport WHERE transport_id = %s;
         """
         result = self._execute_and_fetchone(query, (transport_id,))
@@ -474,6 +475,7 @@ with DatabaseManager(**DB_CONFIG) as db:
     transport = db.create_transport(
         user_id=user.user_id,
         name="IVECO Daily",
+        fuel_consumption=10,
         weight_lift=3500.0,
         aux_info={"type": "фургон", "fuel": "дизель"}
     )
