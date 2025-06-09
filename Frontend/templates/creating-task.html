@@ -106,6 +106,22 @@
             <button type="button" class="add-form-button" id="add-destination">Добавить еще</button>
         </form>
     </div>
+    <div class="types" id="extra-costs-section" style="display: none;">
+    <form class="container">
+        <h2>Дополнительные расходы</h2>
+        <div id="container-extra-costs">
+            <div class="extra-cost-form" id="extra-cost-form-0">
+                <div class="form">
+                    <input type="text" placeholder="Название" class="extra-cost-name-input">
+                    <input type="text" placeholder="Стоимость" class="extra-cost-value-input">
+                    <button type="button" class="bin remove-extra-cost"></button>
+                </div>
+            </div>
+        </div>
+        <button type="button" class="add-form-button" id="add-extra-cost">Добавить еще</button>
+    </form>
+</div>
+
 
     <div>
         <button type="submit" class="clear-button">Очистить формы</button>
@@ -115,6 +131,62 @@
 
 {% block extra_js %}
     <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const settings = JSON.parse(localStorage.getItem('routeSettings')) || {};
+
+        const isSimpleRoute = settings.routeType === 'simple';
+        const considerCapacity = !isSimpleRoute && settings.considerCapacity;
+        const considerFuel = !isSimpleRoute && settings.considerFuel;
+        const considerExtraCosts = !isSimpleRoute && settings.considerExtraCosts;
+
+        // Скрыть секцию машин полностью, если не учитывать вместимость
+        const truckForm = Array.from(document.querySelectorAll('form.container')).find(form =>
+            form.querySelector('h2')?.textContent?.includes('Типы машин')
+        );
+        if (!considerCapacity && truckForm) {
+            truckForm.style.display = 'none';
+        }
+
+        // Если учитывать вместимость, но не учитывать топливо — удалить строку с input расхода топлива
+        if (considerCapacity && !considerFuel) {
+            document.querySelectorAll('.truck-fuel-input').forEach(input => {
+                const fuelRow = input.closest('.truck-input-row');
+                if (fuelRow) fuelRow.remove();
+            });
+        }
+
+        // Показать блок дополнительных расходов, если включено
+        const extraCostsSection = document.getElementById('extra-costs-section');
+        if (considerExtraCosts && extraCostsSection) {
+            extraCostsSection.style.display = 'block';
+        }
+
+        // Добавление доп. расходов
+        document.getElementById('add-extra-cost')?.addEventListener('click', () => {
+            const container = document.getElementById('container-extra-costs');
+            const count = container.children.length;
+
+            const newForm = document.createElement('div');
+            newForm.className = 'extra-cost-form';
+            newForm.id = `extra-cost-form-${count}`;
+            newForm.innerHTML = `
+                <div class="form">
+                    <input type="text" placeholder="Название" class="extra-cost-name-input">
+                    <input type="text" placeholder="Стоимость" class="extra-cost-value-input">
+                    <button type="button" class="bin remove-extra-cost"></button>
+                </div>`;
+            container.appendChild(newForm);
+        });
+
+        // Удаление доп. расходов
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('remove-extra-cost')) {
+                e.target.closest('.extra-cost-form').remove();
+            }
+        });
+    });
+
+        
         // Глобальные переменные для хранения данных из БД
         let dbData = {
             cargoTypes: [],
@@ -472,36 +544,49 @@
                 saveFormDataToCookies();
             });
 
-            function addNewForm(container, formClass, index, nameValue, fillingValue, fuelValue, fillingLable) {
-                const newForm = document.createElement('div');
-                newForm.classList.add('form', formClass);
-                newForm.id = `${formClass}-${index}`;
-                
-                const isCargoType = formClass === 'form-cargo-type';
-                const nameInputClass = isCargoType ? 'cargo-name-input' : 'truck-name-input';
-                const fillingInputClass = isCargoType ? 'cargo-weight-input' : 'truck-capacity-input';
-                const datalistId = isCargoType ? 'cargo-types-list' : 'truck-types-list';
-                        
-                if (isCargoType) {
-                    newForm.innerHTML = `
+        function addNewForm(container, formClass, index, nameValue, fillingValue, fuelValue, fillingLable) {
+            const newForm = document.createElement('div');
+            newForm.classList.add('form', formClass);
+            newForm.id = `${formClass}-${index}`;
+
+            const isCargoType = formClass === 'form-cargo-type';
+            const nameInputClass = isCargoType ? 'cargo-name-input' : 'truck-name-input';
+            const fillingInputClass = isCargoType ? 'cargo-weight-input' : 'truck-capacity-input';
+            const datalistId = isCargoType ? 'cargo-types-list' : 'truck-types-list';
+
+            // Получаем настройки из localStorage
+            const settings = JSON.parse(localStorage.getItem('routeSettings')) || {};
+            const isSimpleRoute = settings.routeType === 'simple';
+            const considerCapacity = !isSimpleRoute && settings.considerCapacity;
+            const considerFuel = !isSimpleRoute && settings.considerFuel;
+
+            if (isCargoType) {
+                newForm.innerHTML = `
+                    <input type="text" placeholder="Наименование" class="${nameInputClass}" list="${datalistId}" value="${nameValue}">
+                    <datalist id="${datalistId}"></datalist>
+                    <input type="text" placeholder="${fillingLable}" class="${fillingInputClass}" value="${fillingValue}">
+                    <button type="button" class="bin remove-${formClass}"></button>
+                `;
+            } else {
+                let formHTML = `
+                    <div class="truck-input-row">
                         <input type="text" placeholder="Наименование" class="${nameInputClass}" list="${datalistId}" value="${nameValue}">
                         <datalist id="${datalistId}"></datalist>
                         <input type="text" placeholder="${fillingLable}" class="${fillingInputClass}" value="${fillingValue}">
                         <button type="button" class="bin remove-${formClass}"></button>
-                    `;
-                } else {
-                    newForm.innerHTML = `
-                        <div class="truck-input-row">
-                            <input type="text" placeholder="Наименование" class="${nameInputClass}" list="${datalistId}" value="${nameValue}">
-                            <datalist id="${datalistId}"></datalist>
-                            <input type="text" placeholder="${fillingLable}" class="${fillingInputClass}" value="${fillingValue}">
-                            <button type="button" class="bin remove-${formClass}"></button>
-                        </div>
+                    </div>
+                `;
+
+                if (considerFuel) {
+                    formHTML += `
                         <div class="truck-input-row">
                             <input type="text" placeholder="Средний расход топлива на 100 км" class="truck-fuel-input" value="${fuelValue}">
                         </div>
                     `;
                 }
+
+                newForm.innerHTML = formHTML;
+            }
                 container.appendChild(newForm);
 
                 const removeButton = newForm.querySelector(`.remove-${formClass}`);

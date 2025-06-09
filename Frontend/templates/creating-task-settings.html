@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="/static/css/creating-task-settings.css">
+{% endblock %}
+
+{% block content %}
+ 
+<h2>Настройки маршрута</h2>
+
+<form id="route-settings-form">
+  <label><input type="radio" name="route-type" value="simple" checked> Простой маршрут</label><br>
+  <label><input type="radio" name="route-type" value="custom"> Настраиваемый маршрут</label><br><br>
+
+  <div id="custom-options" style="display: none;">
+    <label><input type="checkbox" id="consider-capacity"> Учитывать количество и вместительность машин</label><br>
+    <label><input type="checkbox" id="consider-fuel"> Учитывать расход топлива</label><br>
+    <label><input type="checkbox" id="consider-extra-costs"> Учитывать дополнительные расходы</label><br>
+  </div>
+
+  <br><button type="submit">Продолжить</button>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const routeTypeRadios = document.querySelectorAll('input[name="route-type"]');
+  const customOptions = document.getElementById('custom-options');
+  const considerCapacity = document.getElementById('consider-capacity');
+  const considerFuel = document.getElementById('consider-fuel');
+  const considerExtraCosts = document.getElementById('consider-extra-costs');
+
+  // Переключение между типами маршрута
+  function updateOptionsDisplay() {
+    const isCustom = document.querySelector('input[name="route-type"]:checked').value === 'custom';
+    customOptions.style.display = isCustom ? 'block' : 'none';
+
+    if (!isCustom) {
+      considerCapacity.checked = false;
+      considerFuel.checked = false;
+      considerExtraCosts.checked = false;
+      considerFuel.disabled = true;
+    } else {
+      updateFuelCheckboxState();
+    }
+  }
+
+  function updateFuelCheckboxState() {
+    if (considerCapacity.checked) {
+      considerFuel.disabled = false;
+    } else {
+      considerFuel.checked = false;
+      considerFuel.disabled = true;
+    }
+  }
+
+  // Слушатели
+  routeTypeRadios.forEach(radio => radio.addEventListener('change', updateOptionsDisplay));
+  considerCapacity.addEventListener('change', updateFuelCheckboxState);
+
+  // Обработка отправки формы
+  document.getElementById('route-settings-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const routeType = document.querySelector('input[name="route-type"]:checked').value;
+
+    const settings = {
+      routeType: routeType,
+      considerCapacity: routeType === 'custom' ? considerCapacity.checked : false,
+      considerFuel: routeType === 'custom' && considerCapacity.checked ? considerFuel.checked : false,
+      considerExtraCosts: routeType === 'custom' ? considerExtraCosts.checked : false
+    };
+
+    localStorage.setItem('routeSettings', JSON.stringify(settings));
+
+    window.location.href = 'creating-task.html';
+  });
+
+  // Инициализация при загрузке
+  updateOptionsDisplay();
+});
+</script>
+
+{% endblock %}

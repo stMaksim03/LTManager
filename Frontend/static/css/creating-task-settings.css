@@ -1,0 +1,50 @@
+h2 {
+  text-align: center;
+  font-size: 2.5rem;         /* = 45px */
+  margin: 3rem 0 2rem 0;
+  font-weight: 400;          /* нормальная (не жирная) */
+}
+
+
+#route-settings-form {
+  max-width: 40rem;          /* = 640px */
+  margin: 0 auto 3rem auto;  /* центр + отступ снизу */
+  padding: 2rem 2.5rem;      /* = 36px 45px */
+  font-size: 1.5rem;         /* = 27px */
+  box-sizing: border-box;
+}
+
+#route-settings-form label {
+  display: block;
+  margin-bottom: 1.25rem;    /* = 22.5px */
+  cursor: pointer;
+}
+
+#route-settings-form input[type="radio"],
+#route-settings-form input[type="checkbox"] {
+  margin-right: 0.75rem;     /* = 13.5px */
+  transform: scale(1.4);     /* увеличиваем сами чекбоксы и радио */
+}
+
+#route-settings-form button {
+  display: block;
+  margin: 2.5rem auto 0 auto;
+  font-size: 1.75rem;
+  padding: 1rem 2.5rem;
+  cursor: pointer;
+  
+  background-color: #3B82F6;     /* синий */
+  color: white;
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+
+  font-family: inherit;         /* унаследовать шрифт от родителя */
+  font-weight: 500;             /* полужирный, но не слишком */
+}
+
+#route-settings-form button:hover {
+  background-color: #2563EB;    /* тёмно-синий при наведении */
+  transform: scale(1.05);
+}
