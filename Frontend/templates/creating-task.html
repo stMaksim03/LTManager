@@ -899,13 +899,14 @@
                     };
                 }),
                 trucks: Array.from(document.querySelectorAll('.form-truck-type')).map(form => {
-                    const inputs = form.querySelectorAll('input');
-                    return {
-                        name: inputs[0].value,
-                        capacity: inputs[1].value,
-                        fuel: inputs[2].value  // Добавляем расход топлива
-                    };
-                }),
+            const inputs = form.querySelectorAll('input');
+            return {
+                name: inputs[0]?.value || '',
+                capacity: inputs[1]?.value || '',
+                fuel: inputs[2]?.value || ''  // безопасный доступ
+            };
+        }),
+
                 warehouses: Array.from(document.querySelectorAll('.warehouse-form')).map(warehouse => {
                     const inputs = warehouse.querySelectorAll('.form-place input');
                     const cargos = Array.from(warehouse.querySelectorAll('.cargo-item')).map(cargo => {

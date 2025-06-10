@@ -13,8 +13,7 @@
     <div class="route">
         <aside class="sidebar">
             <h2>Маршрут</h2>
-            <ul id="trucks-list" class="list">
-            </ul>
+            <ul id="trucks-list" class="list"></ul>
         </aside>
 
         <div class="route-content">
@@ -30,8 +29,9 @@
                 <li id="path-length">Длина пути: ...</li>
                 <li id="warehouse-count">Количество складов: ...</li>
                 <li id="destination-count">Количество пунктов приема: ...</li>
-                <li id="truck-count">Количество машин: ...</li>
+                <li id="truck-count" style="display: none;">Количество машин: ...</li>
                 <li id="total-cost">Суммарные затраты на доставку: ...</li>
+                <li id="extra-costs" style="display: none;">Доп. расходы: ...</li>
             </ul>
         </div>
         <div class="buttons">
@@ -42,169 +42,175 @@
 {% endblock %}
 
 {% block extra_js %}
-    <script src="/static/js/router.js"></script>
+<script src="/static/js/router.js"></script>
 
-    <script>
-        ymaps.ready(initMap);
+<script>
+    ymaps.ready(initMap);
 
-        function initMap() {
-            const map = new ymaps.Map('map', {
-                center: [55.76, 37.64], // Москва по умолчанию
-                zoom: 10
-            });
+    function initMap() {
+        const map = new ymaps.Map('map', {
+            center: [55.76, 37.64],
+            zoom: 10
+        });
 
-            // ymaps.vow.all([
-                // ymaps.route(['Москва, метро Смоленская', 'Москва, метро Нагатинский затон']),
-                // ymaps.route(['Москва, метро Нагатинский затон', 'Москва, метро Пионерская'])
-            //     ymaps.route([[55.748761277203954,37.58216949999992], [55.68442677743456,37.7045924999999]]),
-            //     ymaps.route(['Москва, метро Нагатинский затон', 'Москва, метро Пионерская'])
-            // ]).spread(function (route1, route2) {
-            //     map.geoObjects.add(route1).add(route2);
-            //     ymaps.geoQuery(route1.getPaths()).add(route2.getPaths()).applyBoundsToMap(map);
-            // });
+fetch('http://localhost:5000/data')
+    .then(response => response.json())
+    .then(data => {
+        console.log('Полученные данные:', data);  // <-- добавил для отладки
 
-            fetch('http://localhost:5000/data')
-                .then(response => response.json())
-                .then(data => {
-                    const { warehouses, destinations, trucks } = data;
-                    
-                    warehouses.forEach(warehouse => {
-                        geocodeAddress(warehouse.address, 'Склад: ' + warehouse.name, map, 'islands#blueIcon');
-                    });
+        const warehouses = data.warehouses || [];
+        const destinations = data.destinations || [];
+        const trucks = data.trucks || [];
+        const extraCosts = data.extraCosts || [];
 
-                    destinations.forEach(destination => {
-                        geocodeAddress(destination.address, 'Пункт выдачи: ' + destination.name, map, 'islands#redIcon');
-                    });
+        warehouses.forEach(warehouse => {
+            geocodeAddress(warehouse.address, 'Склад: ' + warehouse.name, map, 'islands#blueIcon');
+        });
 
-                    updateTrucksList(trucks, warehouses, destinations);
-                })
-                .catch(error => console.error('Error fetching data:', error));
+        destinations.forEach(destination => {
+            geocodeAddress(destination.address, 'Пункт выдачи: ' + destination.name, map, 'islands#redIcon');
+        });
+
+        updateTrucksList(trucks, warehouses, destinations);
+
+        document.getElementById('warehouse-count').textContent = `Количество складов: ${warehouses.length}`;
+        document.getElementById('destination-count').textContent = `Количество пунктов приема: ${destinations.length}`;
+        document.getElementById('total-cost').textContent = `Суммарные затраты на доставку: ${calculateTotalCost(data)}`;
+
+        let settings = {};
+        try {
+            settings = JSON.parse(localStorage.getItem('routeSettings')) || {};
+        } catch (e) {
+            console.warn('Не удалось прочитать настройки маршрута из localStorage', e);
         }
 
-        // Функция для геокодирования адреса и добавления метки на карту
-        function geocodeAddress(address, title, map, iconStyle) {
-            ymaps.geocode(address, {
-                results: 1
-            }).then(function (res) {
-                const firstGeoObject = res.geoObjects.get(0);
-                if (firstGeoObject) {
-                    const coordinates = firstGeoObject.geometry.getCoordinates();
-                    
-                    const placemark = new ymaps.Placemark(
-                        coordinates,
-                        {
-                            hintContent: title,
-                            balloonContent: address
-                        },
-                        {
-                            preset: iconStyle
-                        }
-                    );
-                    
-                    map.geoObjects.add(placemark);
-                    
-                    if (map.geoObjects.getLength() === 1) {
-                        map.setCenter(coordinates);
-                    }
-                }
-            });
+        if (settings.considerCapacity) {
+            const truckCountEl = document.getElementById('truck-count');
+            truckCountEl.style.display = 'list-item';
+
+            // Проверяем, если trucks — массив с длиной > 0
+            const truckCount = Array.isArray(trucks) ? trucks.length : 0;
+            truckCountEl.textContent = `Количество машин: ${truckCount}`;
         }
 
-        function updateTrucksList(trucks, warehouses, destinations) {
-            const trucksList = document.getElementById('trucks-list');
-            trucksList.innerHTML = '';
-            if (trucks.length === 0) {
-                const item = document.createElement('li');
-                item.className = 'truck-item';
-                const warehousesList = document.createElement('ul');
-                warehousesList.className = 'warehouse-list';
-                warehousesList.innerHTML = '<li class="subheader">Склады:</li>';
-                
-                warehouses.forEach(warehouse => {
-                    const warehouseItem = document.createElement('li');
-                    warehouseItem.textContent = `${warehouse.name}: ${warehouse.address}`;
-                    warehousesList.appendChild(warehouseItem);
-                });
+        if (settings.considerExtraCosts) {
+            const extraCostsEl = document.getElementById('extra-costs');
+            extraCostsEl.style.display = 'list-item';
 
-                const destinationsList = document.createElement('ul');
-                destinationsList.className = 'destination-list';
-                destinationsList.innerHTML = '<li class="subheader">Пункты выдачи:</li>';
-                
-                destinations.forEach(destination => {
-                    const destinationItem = document.createElement('li');
-                    destinationItem.textContent = `${destination.name}: ${destination.address}`;
-                    destinationsList.appendChild(destinationItem);
-                });
-                
-                item.appendChild(warehousesList);
-                item.appendChild(destinationsList);
-                trucksList.appendChild(item);
-            } else {
-                trucks.forEach((truck, index) => {
-                    const truckItem = document.createElement('li');
-                    truckItem.className = 'truck-item';
-                    truckItem.innerHTML = `
-                        <div class="truck-header">
-                            <span>${truck.name}</span>
-                        </div>
-                    `;
-
-                    if (index === 0) {
-                        const warehousesList = document.createElement('ul');
-                        warehousesList.className = 'warehouse-list';
-                        warehousesList.innerHTML = '<li class="subheader">Склады:</li>';
-                        
-                        warehouses.forEach(warehouse => {
-                            const warehouseItem = document.createElement('li');
-                            warehouseItem.textContent = `${warehouse.name}: ${warehouse.address}`;
-                            warehousesList.appendChild(warehouseItem);
-                        });
-
-                        const destinationsList = document.createElement('ul');
-                        destinationsList.className = 'destination-list';
-                        destinationsList.innerHTML = '<li class="subheader">Пункты выдачи:</li>';
-                        
-                        destinations.forEach(destination => {
-                            const destinationItem = document.createElement('li');
-                            destinationItem.textContent = `${destination.name}: ${destination.address}`;
-                            destinationsList.appendChild(destinationItem);
-                        });
-                        
-                        truckItem.appendChild(warehousesList);
-                        truckItem.appendChild(destinationsList);
-                    }
-
-                    trucksList.appendChild(truckItem);
-                })
+            // Проверяем что extraCosts — массив и элементы имеют поле value
+            let sumExtraCosts = 0;
+            if (Array.isArray(extraCosts)) {
+                sumExtraCosts = extraCosts.reduce((sum, item) => {
+                    const val = parseFloat(item.value);
+                    return sum + (isNaN(val) ? 0 : val);
+                }, 0);
             }
+
+            extraCostsEl.textContent = `Доп. расходы: ${sumExtraCosts.toLocaleString('ru-RU', { style: 'currency', currency: 'RUB' })}`;
         }
+    })
+    .catch(error => {
+        console.error('Error fetching data:', error);
+        document.getElementById('trucks-list').innerHTML = '<li>Нет данных для отображения</li>';
+    });
 
-        window.buildRoutes = function() {
-            const script = document.createElement('script');
-            script.src = '/static/js/router.js';
-            document.body.appendChild(script);
-        };
+    }
 
-        fetch('http://localhost:5000/data')
-            .then(response => response.json())
-            .then(data => {
-                const { warehouses, destinations, trucks } = data;
-                
-                // Обновляем статистику
-                document.getElementById('warehouse-count').textContent = `Количество складов: ${warehouses.length}`;
-                document.getElementById('destination-count').textContent = `Количество пунктов приема: ${destinations.length}`;
-                document.getElementById('truck-count').textContent = `Количество машин: ${trucks.length}`;
-            })
-            .catch(error => console.error('Error fetching data:', error));
+    function geocodeAddress(address, title, map, iconStyle) {
+        ymaps.geocode(address, { results: 1 }).then(res => {
+            const obj = res.geoObjects.get(0);
+            if (obj) {
+                const coords = obj.geometry.getCoordinates();
+                const placemark = new ymaps.Placemark(coords, {
+                    hintContent: title,
+                    balloonContent: address
+                }, { preset: iconStyle });
 
-        document.getElementById('edit-button').addEventListener('click', () => {
-            window.location.href = "creating-task.html";
+                map.geoObjects.add(placemark);
+
+                if (map.geoObjects.getLength() === 1) {
+                    map.setCenter(coords);
+                }
+            }
         });
+    }
 
-        document.getElementById('save-button').addEventListener('click', () => {
-            // Очищаем cookies после успешного сохранения
-            Cookies.remove('formData');
-            window.location.href = "index.html";
-        });
-    </script>
+    function updateTrucksList(trucks, warehouses, destinations) {
+        const trucksList = document.getElementById('trucks-list');
+        trucksList.innerHTML = '';
+
+        if (!trucks.length) {
+            const item = document.createElement('li');
+            item.className = 'truck-item';
+
+            const warehousesList = document.createElement('ul');
+            warehousesList.className = 'warehouse-list';
+            warehousesList.innerHTML = '<li class="subheader">Склады:</li>';
+            warehouses.forEach(w => {
+                const el = document.createElement('li');
+                el.textContent = `${w.name}: ${w.address}`;
+                warehousesList.appendChild(el);
+            });
+
+            const destinationsList = document.createElement('ul');
+            destinationsList.className = 'destination-list';
+            destinationsList.innerHTML = '<li class="subheader">Пункты выдачи:</li>';
+            destinations.forEach(d => {
+                const el = document.createElement('li');
+                el.textContent = `${d.name}: ${d.address}`;
+                destinationsList.appendChild(el);
+            });
+
+            item.appendChild(warehousesList);
+            item.appendChild(destinationsList);
+            trucksList.appendChild(item);
+        } else {
+            trucks.forEach((truck, index) => {
+                const truckItem = document.createElement('li');
+                truckItem.className = 'truck-item';
+                truckItem.innerHTML = `<div class="truck-header"><span>${truck.name}</span></div>`;
+
+                if (index === 0) {
+                    const warehousesList = document.createElement('ul');
+                    warehousesList.className = 'warehouse-list';
+                    warehousesList.innerHTML = '<li class="subheader">Склады:</li>';
+                    warehouses.forEach(w => {
+                        const el = document.createElement('li');
+                        el.textContent = `${w.name}: ${w.address}`;
+                        warehousesList.appendChild(el);
+                    });
+
+                    const destinationsList = document.createElement('ul');
+                    destinationsList.className = 'destination-list';
+                    destinationsList.innerHTML = '<li class="subheader">Пункты выдачи:</li>';
+                    destinations.forEach(d => {
+                        const el = document.createElement('li');
+                        el.textContent = `${d.name}: ${d.address}`;
+                        destinationsList.appendChild(el);
+                    });
+
+                    truckItem.appendChild(warehousesList);
+                    truckItem.appendChild(destinationsList);
+                }
+
+                trucksList.appendChild(truckItem);
+            });
+        }
+    }
+
+    function calculateTotalCost(data) {
+        // Пример расчёта суммарных затрат, если есть поле totalCost
+        return data.totalCost !== undefined ? data.totalCost : '...';
+    }
+
+    document.getElementById('edit-button').addEventListener('click', () => {
+        window.location.href = "creating-task.html";
+    });
+
+    document.getElementById('save-button').addEventListener('click', () => {
+        Cookies.remove('formData');
+        window.location.href = "index.html";
+    });
+</script>
+
 {% endblock %}
