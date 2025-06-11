@@ -7,8 +7,15 @@
 {% block content %}
     <div class="main-container">
         <h1>Выберите способ ввода данных:</h1>
-        <button class="method-btn" onclick="document.location='creating-task-settings.html'">Заполнить форму</button>
-        <button class="method-btn" onclick="document.location='uploading-file.html'">Загрузить файл</button>
-        <button class="method-btn">Перейти в архив</button>
+        <div class="methods-wrapper">
+            <div class="method-block">
+                <img src="/static/scr/image_form.png" alt="Форма" class="method-img">
+                <button class="method-btn" onclick="document.location='creating-task-settings.html'">Заполнить форму</button>
+            </div>
+            <div class="method-block">
+                <img src="/static/scr/image_file.png" alt="Загрузить файл" class="method-img">
+                <button class="method-btn" onclick="document.location='uploading-file.html'">Загрузить файл</button>
+            </div>
+        </div>
     </div>
 {% endblock %}
