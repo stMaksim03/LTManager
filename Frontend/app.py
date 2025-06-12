@@ -267,13 +267,72 @@ def get_db_data():
 
 
 @app.route('/api/logistics')
+@login_required
 def get_logistics_data():
     global data_storage
-    return jsonify({
-        'warehouses': data_storage.get('warehouses', []),
-        'destinations': data_storage.get('destinations', [])
-    })
 
+    # Если данные есть в памяти — вернуть их
+    if data_storage.get('warehouses') and data_storage.get('destinations'):
+        return jsonify({
+            'warehouses': data_storage.get('warehouses', []),
+            'destinations': data_storage.get('destinations', [])
+        })
+
+    try:
+        with DatabaseManager(**DB_CONFIG) as db:
+            user_id = current_user.id
+
+            # Получение складов
+            warehouses = db._execute_and_fetchall("""
+                SELECT warehouse_id, name, address,
+                       ST_Y(coordinates::geometry) AS lat,
+                       ST_X(coordinates::geometry) AS lon
+                FROM warehouses
+                WHERE user_id = %s;
+            """, (user_id,))
+
+            # Получение содержимого складов
+            warehouses_data = []
+            for warehouse in warehouses:
+                inventory = db._execute_and_fetchall("""
+                    SELECT p.name AS product_name, si.quantity
+                    FROM storage_inventory si
+                    JOIN products p ON si.product_id = p.product_id
+                    WHERE si.warehouse_id = %s;
+                """, (warehouse['warehouse_id'],))
+
+                warehouses_data.append({
+                    'name': warehouse['name'],
+                    'address': warehouse['address'],
+                    'cargos': [{
+                        'type': item['product_name'],
+                        'quantity': item['quantity'],
+                        'available': item['quantity']
+                    } for item in inventory]
+                })
+
+            # Получение пунктов приёма
+            destinations = db._execute_and_fetchall("""
+                SELECT name, address,
+                       ST_Y(coordinates::geometry) AS lat,
+                       ST_X(coordinates::geometry) AS lon
+                FROM collection_points
+                WHERE user_id = %s;
+            """, (user_id,))
+
+            destinations_data = [{
+                'name': dest['name'],
+                'address': dest['address'],
+                'cargos': []
+            } for dest in destinations]
+
+            return jsonify({
+                'warehouses': warehouses_data,
+                'destinations': destinations_data
+            })
+    # в случае ошибки при получении данных из базы
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/api/compute-routes', methods=['POST'])
 def compute_routes():
