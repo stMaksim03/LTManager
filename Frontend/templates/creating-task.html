@@ -899,24 +899,30 @@
                     };
                 }),
                 trucks: Array.from(document.querySelectorAll('.form-truck-type')).map(form => {
-            const inputs = form.querySelectorAll('input');
-            return {
-                name: inputs[0]?.value || '',
-                capacity: inputs[1]?.value || '',
-                fuel: inputs[2]?.value || ''  // безопасный доступ
-            };
-        }),
-
+                    const inputs = form.querySelectorAll('input');
+                    return {
+                        name: inputs[0]?.value || '',
+                        capacity: inputs[1]?.value || '',
+                        fuel: inputs[2]?.value || ''  // безопасный доступ
+                    };
+                }),
                 warehouses: Array.from(document.querySelectorAll('.warehouse-form')).map(warehouse => {
                     const inputs = warehouse.querySelectorAll('.form-place input');
                     const cargos = Array.from(warehouse.querySelectorAll('.cargo-item')).map(cargo => {
                         const cargoInputs = cargo.querySelectorAll('.cargo-item-specification input');
+                        // Находим вес для этого типа груза
+                        const cargoType = cargoInputs[0].value;
+                        const cargoWeight = Array.from(document.querySelectorAll('.form-cargo-type')).find(form => {
+                            return form.querySelector('.cargo-name-input').value === cargoType;
+                        })?.querySelector('.cargo-weight-input').value || '0';
+                        
                         return {
-                            type: cargoInputs[0].value,
-                            quantity: cargoInputs[1].value
+                            type: cargoType,
+                            quantity: cargoInputs[1].value,
+                            weight: cargoWeight
                         };
                     });
-                                    return {
+                    return {
                         name: inputs[0].value,
                         address: inputs[1].value,
                         cargos: cargos
@@ -926,9 +932,16 @@
                     const inputs = destination.querySelectorAll('.form-place input');
                     const cargos = Array.from(destination.querySelectorAll('.cargo-item')).map(cargo => {
                         const cargoInputs = cargo.querySelectorAll('.cargo-item-specification input');
+                        // Находим вес для этого типа груза
+                        const cargoType = cargoInputs[0].value;
+                        const cargoWeight = Array.from(document.querySelectorAll('.form-cargo-type')).find(form => {
+                            return form.querySelector('.cargo-name-input').value === cargoType;
+                        })?.querySelector('.cargo-weight-input').value || '0';
+                        
                         return {
-                            type: cargoInputs[0].value,
-                            quantity: cargoInputs[1].value
+                            type: cargoType,
+                            quantity: cargoInputs[1].value,
+                            weight: cargoWeight
                         };
                     });
                     return {
@@ -1016,11 +1029,22 @@
             // Проверка условия
             document.querySelector('.check-button').addEventListener('click', async function() {
                 const formData = collectFormData();
+                if (!formData) return;
+
+                 const routeSettings = JSON.parse(localStorage.getItem('routeSettings')) || {
+                    routeType: 'simple',
+                    considerCapacity: false,
+                    considerFuel: false,
+                    considerExtraCosts: false
+                };
                 
                 try {
                     const response = await axios.post('http://localhost:5000/validate', JSON.stringify(formData), {
                         headers: {
                             'Content-Type': 'application/json'
+                        },
+                        params: {
+                            route_settings: JSON.stringify(routeSettings)
                         }
                     });
                     

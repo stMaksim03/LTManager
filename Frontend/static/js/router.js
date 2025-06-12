@@ -48,13 +48,20 @@ async function buildRoutes() {
             }
         }
 
-        await fetch('/api/save-routes', {
+        await fetch('/api/compute-routes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(routesData)
         });
 
         console.log(routesData)
+        console.log("Маршруты успешно рассчитаны");
+
+        await fetch('/api/save-routes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify()
+        });
 
         console.log("Маршруты успешно отправлены на сервер.");
     } catch (error) {

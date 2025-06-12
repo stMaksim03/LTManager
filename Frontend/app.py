@@ -1,6 +1,6 @@
 from datetime import timedelta
 import re
-from flask import Flask, request, jsonify, render_template, session
+from flask import Flask, json, request, jsonify, render_template, session
 from flask_cors import CORS
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
@@ -223,7 +223,7 @@ def get_db_data():
             warehouses_data = []
             for warehouse in warehouses:
                 inventory = db._execute_and_fetchall("""
-                    SELECT p.name as product_name, si.quantity 
+                    SELECT p.name as product_name, si.quantity
                     FROM storage_inventory si
                     JOIN products p ON si.product_id = p.product_id
                     WHERE si.warehouse_id = %s;
@@ -259,7 +259,7 @@ def get_db_data():
                 'cargoTypes': [{'name': p['name'], 'weight': p['weight']} for p in products],
                 'truckTypes': [{'name': t['name'], 'capacity': t['capacity'], 'fuel': t['fuel']} for t in transports],
                 'warehouses': warehouses_data,
-                'destinations': [{'name': cp['name'], 'address': cp['address'],} for cp in collection_points]
+                'destinations': [{'name': cp['name'], 'address': cp['address']} for cp in collection_points]
             })
             
     except Exception as e:
@@ -275,8 +275,8 @@ def get_logistics_data():
     })
 
 
-@app.route('/api/save-routes', methods=['POST'])
-def save_routes():
+@app.route('/api/compute-routes', methods=['POST'])
+def compute_routes():
     try:
         routes_data = request.get_json()
         if not routes_data:
@@ -284,22 +284,42 @@ def save_routes():
         
         print("Received routes data:", routes_data)  # Для отладки
         
-        return jsonify({'success': True, 'message': 'Routes saved successfully'}), 200
+        # расчет маршрутов 
+        
+        return jsonify({'success': True, 'message': 'Routes computed successfully'}), 200 # вернуть маршрут
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
+
+@app.route('/api/save-routes', methods=['POST'])
+def save_routes():  
+    return jsonify({'success': True, 'message': 'Routes saved successfully'}), 200
+
+
 def all_fields_filled(data):
     """Проверка заполненности всех полей"""
+    # Получаем настройки маршрута из localStorage (с фронтенда)
+    route_settings = request.args.get('route_settings')
+    if route_settings:
+        route_settings = json.loads(route_settings)
+    else:
+        # Значения по умолчанию, если настройки не переданы
+        route_settings = {
+            'routeType': 'simple',
+            'considerCapacity': False,
+            'considerFuel': False
+        }
     # типы грузов
     for cargo in data['cargo_types']:
         if not cargo['name'] or not cargo['weight']:
             return False
         
     # типы машин
-    for truck in data['trucks']:
-        if not truck['name'] or not truck['capacity']:
-            return False
+    if route_settings.get('considerCapacity', False):
+        for truck in data['trucks']:
+            if not truck['name'] or not truck['capacity']:
+                return False
     
     # склады
     for warehouse in data['warehouses']:
