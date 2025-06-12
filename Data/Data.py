@@ -452,7 +452,7 @@ class DatabaseManager:
         self.conn.close()
         
 # Пример создания и работы с таблицами
-
+"""
 with DatabaseManager(**DB_CONFIG) as db:
     print("\n--- USERS ---")
     user = db.create_user(
@@ -545,3 +545,4 @@ with DatabaseManager(**DB_CONFIG) as db:
         print(f"Пользователь {user_id} успешно удалён.")
     else:
         print(f"Пользователь {user_id} не найден или не удалён.")
+        """

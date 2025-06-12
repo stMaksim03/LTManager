@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
-from Backend.Solver.Data import DatabaseManager
+from Data.Data import DatabaseManager
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'

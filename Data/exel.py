@@ -137,6 +137,7 @@ class TransportTaskData:
         return True
 
 # Пример использования
+"""
 if __name__ == "__main__":
     data = TransportTaskData()
     data.load_from_excel("C:/Users/Владимир/Desktop/Матрица.xlsx")
@@ -151,3 +152,4 @@ if __name__ == "__main__":
             print(f"- {product.name}: {item.quantity} шт.")
     else:
         print("Обнаружены ошибки в данных!")
+"""
