@@ -80,6 +80,7 @@ extern "C" {
 #endif
 
 extern __declspec(dllexport) int* solveTransport(int* supplyPtr, int supplyLen, int* demandPtr, int demandLen, int* costPtr, int costRows, int costCols);
+extern __declspec(dllexport) void FreeResult(int* ptr);
 
 #ifdef __cplusplus
 }

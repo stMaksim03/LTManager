@@ -1,15 +1,15 @@
 from dataclasses import dataclass, field
 from typing import Dict, Tuple, Optional
-from BaseClasses import ProductStorage
+from BaseClasses import ProductStorage, Product
 
 
 @dataclass
 class Route:
     id: int = -1
-    length: float = -1.0
+    length: int = -1
     storage_ptr: Optional[ProductStorage] = None
     receiver_ptr: Optional[ProductStorage] = None
-    input_data: Dict[str, str] = field(default_factory=dict)
+    raw_data: Dict[str, str] = field(default_factory=dict)
 
     def __lt__(self, other: 'Route') -> bool:
         return self.id < other.id
@@ -18,6 +18,9 @@ class Route:
         if not isinstance(other, Route):
             return NotImplemented
         return self.storage_ptr == other.storage_ptr and self.receiver_ptr == other.receiver_ptr
+    
+    def __hash__(self):
+        return hash((self.storage_ptr, self.receiver_ptr))
 
     def __le__(self, other: 'Route') -> bool:
         return self < other or self == other
@@ -27,14 +30,18 @@ class Route:
 
     def __ge__(self, other: 'Route') -> bool:
         return not self < other
+    
+    def get_ptrs(self):
+        return (self.storage_ptr, self.receiver_ptr)
 
 
 class RouteMatrix:
-    def __init__(self):
+    def __init__(self, product : Product):
         self.storages: list[ProductStorage] = []
         self.receivers: list[ProductStorage] = []
         self.routes: Dict[Tuple[ProductStorage, ProductStorage], Route] = {}
         self.aux_info: Dict[str, str] = {}
+        self.product: Product = product
 
     def add_storage(self, storage: ProductStorage):
         if storage not in self.storages:
@@ -45,6 +52,8 @@ class RouteMatrix:
             self.receivers.append(receiver)
 
     def set_at(self, storage: ProductStorage, receiver: ProductStorage, route: Route):
+        self.add_storage(storage)
+        self.add_receiver(receiver)
         self.routes[(storage, receiver)] = route
 
     def get_at(self, storage: ProductStorage, receiver: ProductStorage) -> Route:

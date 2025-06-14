@@ -5,9 +5,8 @@ package main
 /*
 #include <stdlib.h>
 */
-import (
-	"C"
-)
+import "C"
+
 import (
 	"fmt"
 	"math"
@@ -15,22 +14,23 @@ import (
 )
 
 func solveTransportDualPreference(supply []int, demand []int, cost [][]int) [][]int {
-	length := len(supply)
+	sl := len(supply)
+	dl := len(demand)
 
-	result := make([][]int, length)
+	result := make([][]int, sl)
 	for i := range result {
-		result[i] = make([]int, length)
+		result[i] = make([]int, dl)
 	}
 
 	//s := append([]int(nil), supply...)
 	//d := append([]int(nil), demand...)
 
-	rowMin := make([]int, length)
-	colMin := make([]int, length)
+	rowMin := make([]int, sl)
+	colMin := make([]int, dl)
 
-	for i := 0; i < length; i++ {
+	for i := 0; i < sl; i++ {
 		rowMin[i] = 0
-		for j := 0; j < length; j++ {
+		for j := 0; j < dl; j++ {
 			if i == 0 {
 				colMin[j] = 0
 			}
@@ -43,7 +43,7 @@ func solveTransportDualPreference(supply []int, demand []int, cost [][]int) [][]
 		}
 	}
 
-	for i := 0; i < length; i++ {
+	for i := 0; i < sl; i++ {
 		j := rowMin[i]
 		if supply[i] > 0 && demand[j] > 0 && colMin[j] == i {
 			q := min(supply[i], demand[j])
@@ -53,7 +53,7 @@ func solveTransportDualPreference(supply []int, demand []int, cost [][]int) [][]
 		}
 	}
 
-	for i := 0; i < length; i++ {
+	for i := 0; i < sl; i++ {
 		col := rowMin[i]
 		if supply[i] > 0 && demand[col] > 0 && colMin[col] != i {
 			q := min(supply[i], demand[col])
@@ -61,12 +61,14 @@ func solveTransportDualPreference(supply []int, demand []int, cost [][]int) [][]
 			supply[i] -= q
 			demand[col] -= q
 		}
-		row := colMin[i]
-		if supply[row] > 0 && demand[i] > 0 && rowMin[row] != i {
-			q := min(supply[row], demand[i])
-			result[row][i] = q
+	}
+	for j := 0; j < dl; j++ {
+		row := colMin[j]
+		if supply[row] > 0 && demand[j] > 0 && rowMin[row] != j {
+			q := min(supply[row], demand[j])
+			result[row][j] = q
 			supply[row] -= q
-			demand[i] -= q
+			demand[j] -= q
 		}
 	}
 
@@ -75,11 +77,11 @@ func solveTransportDualPreference(supply []int, demand []int, cost [][]int) [][]
 		var minI, minJ int
 		found := false
 
-		for i := 0; i < length; i++ {
+		for i := 0; i < sl; i++ {
 			if supply[i] == 0 {
 				continue
 			}
-			for j := 0; j < length; j++ {
+			for j := 0; j < dl; j++ {
 				if demand[j] == 0 {
 					continue
 				}
@@ -395,6 +397,11 @@ func solveTransport(supplyPtr *C.int, supplyLen C.int, demandPtr *C.int, demandL
 	}
 
 	return out
+}
+
+//export FreeResult
+func FreeResult(ptr *C.int) {
+	C.free(unsafe.Pointer(ptr))
 }
 
 func main() {

@@ -47,10 +47,11 @@ class ProductStorage:
         if not isinstance(other, ProductStorage):
             return NotImplemented
         if self.name == other.name and self.address == other.address:
-            if self._stored_products is not other._stored_products:
-                self.merge(other)
             return True
         return False
+    
+    def __hash__(self):
+        return hash((self.name, self.address))
 
     def __getitem__(self, product_id: int) -> Optional[Product]:
         return next((p for p in self._stored_products if p.id == product_id), None)
