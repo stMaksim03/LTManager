@@ -75,7 +75,8 @@ def validate_form():
         data_storage = {
             'trucks': [],
             'warehouses': [],
-            'destinations': []
+            'destinations': [],
+            'extraCosts': []
         }
 
         data = request.get_json()
@@ -92,9 +93,12 @@ def validate_form():
         if not validate_unique_names(data):
             return jsonify({'success': False, 'message': 'Названия должны быть уникальными в пределах каждой формы'}), 400
         
-        data_storage['trucks'] = data.get('trucks', [])
-        data_storage['warehouses'] = data.get('warehouses', [])
-        data_storage['destinations'] = data.get('destinations', [])
+        data_storage = {
+            'trucks': data.get('trucks', []),
+            'warehouses': data.get('warehouses', []),
+            'destinations': data.get('destinations', []),
+            'extraCosts': data.get('extraCosts', [])
+        }
         
         return jsonify({'success': True, 'redirect': '/itinerary.html'}), 200   
     
@@ -109,7 +113,8 @@ def get_data():
     return jsonify({
         'trucks': data_storage['trucks'],
         'warehouses': data_storage['warehouses'],
-        'destinations': data_storage['destinations']
+        'destinations': data_storage['destinations'],
+        'extraCosts': data_storage['extraCosts']
     })
 
 
@@ -270,7 +275,6 @@ def get_db_data():
 @login_required
 def get_logistics_data():
     global data_storage
-
     # Если данные есть в памяти — вернуть их
     if data_storage.get('warehouses') and data_storage.get('destinations'):
         return jsonify({
@@ -334,6 +338,7 @@ def get_logistics_data():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
+
 @app.route('/api/compute-routes', methods=['POST'])
 def compute_routes():
     try:
@@ -344,11 +349,10 @@ def compute_routes():
         print("Received routes data:", routes_data)  # Для отладки
         
         # расчет маршрутов 
-        
+
         return jsonify({'success': True, 'message': 'Routes computed successfully'}), 200 # вернуть маршрут
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
-
 
 
 @app.route('/api/save-routes', methods=['POST'])

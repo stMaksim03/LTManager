@@ -176,6 +176,18 @@
                     <button type="button" class="bin remove-extra-cost"></button>
                 </div>`;
             container.appendChild(newForm);
+
+            newForm.querySelector('.remove-extra-cost').addEventListener('click', function() {
+                container.removeChild(newForm);
+                saveFormDataToCookies();
+            });
+            
+            const inputs = newForm.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('input', saveFormDataToCookies);
+            });
+            
+            saveFormDataToCookies();
         });
 
         // Удаление доп. расходов
@@ -949,9 +961,15 @@
                         address: inputs[1].value,
                         cargos: cargos
                     };
+                }),
+                extraCosts: Array.from(document.querySelectorAll('.extra-cost-form')).map(form => {
+                    const inputs = form.querySelectorAll('input');
+                    return {
+                        name: inputs[0].value,
+                        value: inputs[1].value
+                    };
                 })
             };
-
             return formData;
         }
 
@@ -1011,6 +1029,40 @@
                 'destination',
                 savedFormData ? savedFormData.destinations : []
             );
+
+            const settings = JSON.parse(localStorage.getItem('routeSettings')) || {};
+            const isSimpleRoute = settings.routeType === 'simple';
+            const considerExtraCosts = !isSimpleRoute && settings.considerExtraCosts;
+
+            if (considerExtraCosts && savedFormData?.extraCosts) {
+                const container = document.getElementById('container-extra-costs');
+                container.innerHTML = '';
+                
+                savedFormData.extraCosts.forEach((cost, index) => {
+                    const newForm = document.createElement('div');
+                    newForm.className = 'extra-cost-form';
+                    newForm.id = `extra-cost-form-${index}`;
+                    newForm.innerHTML = `
+                        <div class="form">
+                            <input type="text" placeholder="Название" class="extra-cost-name-input" value="${cost.name || ''}">
+                            <input type="text" placeholder="Стоимость" class="extra-cost-value-input" value="${cost.value || ''}">
+                            <button type="button" class="bin remove-extra-cost"></button>
+                        </div>`;
+                    container.appendChild(newForm);
+                    
+                    // Добавляем обработчик для кнопки удаления
+                    newForm.querySelector('.remove-extra-cost').addEventListener('click', function() {
+                        container.removeChild(newForm);
+                        saveFormDataToCookies();
+                    });
+                    
+                    // Добавляем обработчики для полей ввода
+                    const inputs = newForm.querySelectorAll('input');
+                    inputs.forEach(input => {
+                        input.addEventListener('input', saveFormDataToCookies);
+                    });
+                });
+            }
 
             setTimeout(() => {
                 updateAllWarehouseCargosLists();

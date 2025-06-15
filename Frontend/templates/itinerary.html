@@ -53,67 +53,66 @@
             zoom: 10
         });
 
-fetch('http://localhost:5000/data')
-    .then(response => response.json())
-    .then(data => {
-        console.log('Полученные данные:', data);  // <-- добавил для отладки
+        fetch('http://localhost:5000/data')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Полученные данные:', data);  // <-- добавил для отладки
 
-        const warehouses = data.warehouses || [];
-        const destinations = data.destinations || [];
-        const trucks = data.trucks || [];
-        const extraCosts = data.extraCosts || [];
+                const warehouses = data.warehouses || [];
+                const destinations = data.destinations || [];
+                const trucks = data.trucks || [];
+                const extraCosts = data.extraCosts || [];
 
-        warehouses.forEach(warehouse => {
-            geocodeAddress(warehouse.address, 'Склад: ' + warehouse.name, map, 'islands#blueIcon');
+                warehouses.forEach(warehouse => {
+                    geocodeAddress(warehouse.address, 'Склад: ' + warehouse.name, map, 'islands#blueIcon');
+                });
+
+                destinations.forEach(destination => {
+                    geocodeAddress(destination.address, 'Пункт выдачи: ' + destination.name, map, 'islands#redIcon');
+                });
+
+                updateTrucksList(trucks, warehouses, destinations);
+
+                document.getElementById('warehouse-count').textContent = `Количество складов: ${warehouses.length}`;
+                document.getElementById('destination-count').textContent = `Количество пунктов приема: ${destinations.length}`;
+                document.getElementById('total-cost').textContent = `Суммарные затраты на доставку: ${calculateTotalCost(data)}`;
+
+                let settings = {};
+                try {
+                    settings = JSON.parse(localStorage.getItem('routeSettings')) || {};
+                } catch (e) {
+                    console.warn('Не удалось прочитать настройки маршрута из localStorage', e);
+                }
+
+                if (settings.considerCapacity) {
+                    const truckCountEl = document.getElementById('truck-count');
+                    truckCountEl.style.display = 'list-item';
+
+                    // Проверяем, если trucks — массив с длиной > 0
+                    const truckCount = Array.isArray(trucks) ? trucks.length : 0;
+                    truckCountEl.textContent = `Количество машин: ${truckCount}`;
+                }
+
+                if (settings.considerExtraCosts) {
+                    const extraCostsEl = document.getElementById('extra-costs');
+                    extraCostsEl.style.display = 'list-item';
+
+                    // Проверяем что extraCosts — массив и элементы имеют поле value
+                    let sumExtraCosts = 0;
+                    if (data.extraCosts && Array.isArray(data.extraCosts)) {
+                        sumExtraCosts = data.extraCosts.reduce((sum, item) => {
+                            const val = parseFloat(item.value) || 0;
+                            return sum + val;
+                        }, 0);
+                    }
+                    
+                    extraCostsEl.textContent = `Доп. расходы: ${sumExtraCosts.toLocaleString('ru-RU', { style: 'currency', currency: 'RUB' })}`;
+                }
+            })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+            document.getElementById('trucks-list').innerHTML = '<li>Нет данных для отображения</li>';
         });
-
-        destinations.forEach(destination => {
-            geocodeAddress(destination.address, 'Пункт выдачи: ' + destination.name, map, 'islands#redIcon');
-        });
-
-        updateTrucksList(trucks, warehouses, destinations);
-
-        document.getElementById('warehouse-count').textContent = `Количество складов: ${warehouses.length}`;
-        document.getElementById('destination-count').textContent = `Количество пунктов приема: ${destinations.length}`;
-        document.getElementById('total-cost').textContent = `Суммарные затраты на доставку: ${calculateTotalCost(data)}`;
-
-        let settings = {};
-        try {
-            settings = JSON.parse(localStorage.getItem('routeSettings')) || {};
-        } catch (e) {
-            console.warn('Не удалось прочитать настройки маршрута из localStorage', e);
-        }
-
-        if (settings.considerCapacity) {
-            const truckCountEl = document.getElementById('truck-count');
-            truckCountEl.style.display = 'list-item';
-
-            // Проверяем, если trucks — массив с длиной > 0
-            const truckCount = Array.isArray(trucks) ? trucks.length : 0;
-            truckCountEl.textContent = `Количество машин: ${truckCount}`;
-        }
-
-        if (settings.considerExtraCosts) {
-            const extraCostsEl = document.getElementById('extra-costs');
-            extraCostsEl.style.display = 'list-item';
-
-            // Проверяем что extraCosts — массив и элементы имеют поле value
-            let sumExtraCosts = 0;
-            if (Array.isArray(extraCosts)) {
-                sumExtraCosts = extraCosts.reduce((sum, item) => {
-                    const val = parseFloat(item.value);
-                    return sum + (isNaN(val) ? 0 : val);
-                }, 0);
-            }
-
-            extraCostsEl.textContent = `Доп. расходы: ${sumExtraCosts.toLocaleString('ru-RU', { style: 'currency', currency: 'RUB' })}`;
-        }
-    })
-    .catch(error => {
-        console.error('Error fetching data:', error);
-        document.getElementById('trucks-list').innerHTML = '<li>Нет данных для отображения</li>';
-    });
-
     }
 
     function geocodeAddress(address, title, map, iconStyle) {
@@ -200,7 +199,18 @@ fetch('http://localhost:5000/data')
 
     function calculateTotalCost(data) {
         // Пример расчёта суммарных затрат, если есть поле totalCost
-        return data.totalCost !== undefined ? data.totalCost : '...';
+        if (data.totalCost !== undefined) {
+            if (data.extraCosts && Array.isArray(data.extraCosts)) {
+                data.extraCosts.forEach(cost => {
+                    const value = parseFloat(cost.value) || 0;
+                    totalCost += value;
+                });
+            } 
+
+            return totalCost.toLocaleString('ru-RU', { style: 'currency', currency: 'RUB' });
+        } else {
+            return '...';
+        }
     }
 
     document.getElementById('edit-button').addEventListener('click', () => {
