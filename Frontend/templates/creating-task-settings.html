@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
- 
+
 <h2>Настройки маршрута</h2>
 
 <form id="route-settings-form">
@@ -14,11 +14,17 @@
 
   <div id="custom-options" style="display: none;">
     <label><input type="checkbox" id="consider-capacity"> Учитывать количество и вместительность машин</label><br>
+
     <label><input type="checkbox" id="consider-fuel"> Учитывать расход топлива</label><br>
+    <div id="fuel-price-container" style="display: none;">
+      <label for="fuel-price">Цена за литр, р.:</label>
+      <input type="number" id="fuel-price" min="0" step="0.01" value="0">
+    </div>
+
     <label><input type="checkbox" id="consider-extra-costs"> Учитывать дополнительные расходы</label><br>
   </div>
 
-  <br><button type="submit">Продолжить</button>
+  <br><button type="submit" id="submit-btn">Продолжить</button>
 </form>
 
 <script>
@@ -28,8 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const considerCapacity = document.getElementById('consider-capacity');
   const considerFuel = document.getElementById('consider-fuel');
   const considerExtraCosts = document.getElementById('consider-extra-costs');
+  const fuelPriceContainer = document.getElementById('fuel-price-container');
+  const fuelPriceInput = document.getElementById('fuel-price');
+  const submitBtn = document.getElementById('submit-btn');
 
-  // Переключение между типами маршрута
   function updateOptionsDisplay() {
     const isCustom = document.querySelector('input[name="route-type"]:checked').value === 'custom';
     customOptions.style.display = isCustom ? 'block' : 'none';
@@ -38,10 +46,12 @@ document.addEventListener('DOMContentLoaded', () => {
       considerCapacity.checked = false;
       considerFuel.checked = false;
       considerExtraCosts.checked = false;
+      fuelPriceContainer.style.display = 'none';
       considerFuel.disabled = true;
-      } else {
+    } else {
       updateFuelCheckboxState();
     }
+    validateFuelPrice();
   }
 
   function updateFuelCheckboxState() {
@@ -51,22 +61,45 @@ document.addEventListener('DOMContentLoaded', () => {
       considerFuel.checked = false;
       considerFuel.disabled = true;
     }
+    fuelPriceContainer.style.display = (considerFuel.checked && !considerFuel.disabled) ? 'flex' : 'none';
+    validateFuelPrice();
   }
 
-  // Слушатели
+  function validateFuelPrice() {
+    const price = parseFloat(fuelPriceInput.value) || 0;
+    // Если учитываем расход топлива и цена 0 — блокируем кнопку
+    if (considerFuel.checked && price === 0) {
+      submitBtn.disabled = true;
+    } else {
+      submitBtn.disabled = false;
+    }
+  }
+
   routeTypeRadios.forEach(radio => radio.addEventListener('change', updateOptionsDisplay));
   considerCapacity.addEventListener('change', updateFuelCheckboxState);
+  considerFuel.addEventListener('change', updateFuelCheckboxState);
+  fuelPriceInput.addEventListener('input', validateFuelPrice);
 
-  // Обработка отправки формы
   document.getElementById('route-settings-form').addEventListener('submit', (e) => {
     e.preventDefault();
 
+    // Повторная проверка на случай, если отключили кнопку через JS, но попытались отправить форму программно
     const routeType = document.querySelector('input[name="route-type"]:checked').value;
+    const considerCapacityChecked = routeType === 'custom' ? considerCapacity.checked : false;
+    const considerFuelChecked = routeType === 'custom' && considerCapacityChecked ? considerFuel.checked : false;
+    const fuelPriceValue = parseFloat(fuelPriceInput.value) || 0;
+
+    if (considerFuelChecked && fuelPriceValue === 0) {
+      alert('Пожалуйста, введите цену за литр топлива больше 0');
+      fuelPriceInput.focus();
+      return;
+    }
 
     const settings = {
       routeType: routeType,
-      considerCapacity: routeType === 'custom' ? considerCapacity.checked : false,
-      considerFuel: routeType === 'custom' && considerCapacity.checked ? considerFuel.checked : false,
+      considerCapacity: considerCapacityChecked,
+      considerFuel: considerFuelChecked,
+      fuelPrice: considerFuelChecked ? fuelPriceValue : 0,
       considerExtraCosts: routeType === 'custom' ? considerExtraCosts.checked : false
     };
 
@@ -75,7 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href = 'creating-task.html';
   });
 
-  // Инициализация при загрузке
   updateOptionsDisplay();
 });
 </script>

@@ -48,3 +48,24 @@ h2 {
   background-color: #2563EB;    /* тёмно-синий при наведении */
   transform: scale(1.05);
 }
+
+#fuel-price-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.5rem 0 2rem 2rem;
+}
+
+#fuel-price-container label {
+  font-size: 1.5rem;
+  white-space: nowrap;
+  margin: 0;
+}
+
+#fuel-price {
+  width: 10rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 1.4rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+}
