@@ -1,18 +1,49 @@
 import RouteClasses as rc
 import BaseClasses as bc
-from calculation import solve
-from ClassConverter import *
+from Calculation import solve
+from ClassBuilder import *
 import randomdata as rd
-import calculation as calc
+import Calculation as calc
+import Formaters as forms
+import json
 
 def main():
+
+    #Генерация тестовых json файлов
     warehouses_json = rd.generate_warehouses_json(10)
     receivers_json = rd.generate_receivers_json(10)
     routes_json = rd.generate_all_routes_json(warehouses_json, receivers_json)
+    transport_json = rd.generate_transport_json(10)
+    
+    #Конвертация в классы (Сразу целым массивом)
     storages = build_ProductStorage_from_json(warehouses_json)
     receivers = build_ProductStorage_from_json(receivers_json)
     routes = build_Route_from_json(routes_json, storages + receivers)
-    routeMatrices = build_RouteMatrix(storages, routes)
+    transports = build_Transport_from_json(transport_json)
+
+    #Вывод всей информации в формате
+    formatted_data = forms.array_simple_formatter(storages, routes, transports, 1.0)
+
+    #Вывод статистики для каждого решения
+    for pair in formatted_data:
+        statistic = pair[0]
+        print("------------------------------------")
+        print(statistic["length"])
+        print(statistic["cost"])
+        print(statistic["warehouses_count"])
+        print(statistic["destinations_count"])
+        print(statistic["truck_count"])
+    '''
+    for calculation in calculations:
+        formatted_transports = forms.transport_assigned_formatter(calculation, transports)
+        statistic = forms.statistics_formatter(calculation)
+        print("------------------------------------")
+        print(statistic["length"])
+        print(statistic["cost"])
+        print(statistic["warehouses_count"])
+        print(statistic["destinations_count"])
+    '''
+    '''
     for st in storages:
         print(st.address)
         print(st.name)
@@ -42,7 +73,14 @@ def main():
         print(solution.cost_overall)
         for route in solution:
             print(route[0].raw_data)
-        
+        tr = calc.assign_transport_from_calculation(solution, build_Transport_from_json(transport_json))
+        for transport in tr:
+            print(f"For {transport.name} id: {transport.id} routes:")
+            for route in tr[transport]:
+                print(f"from: {route.storage_ptr.name} to {route.receiver_ptr.name}")
+                print(f"length: {route.length}")
+    #print(transport_json)
+    '''
         
     '''
     a = bc.ProductStorage("zavod", 0)

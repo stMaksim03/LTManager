@@ -7,7 +7,7 @@ def generate_warehouses_json(n=3):
         for j in range(random.randint(1, 3)):
             cargo = {
                 'type': f'P{random.randint(1, 5)}',
-                'quantity': str(random.randint(1, 20)),
+                'quantity': str(random.randint(1000, 10000)),
                 'weight': str(round(random.uniform(0.5, 5.0), 1))
             }
             cargos.append(cargo)
@@ -25,7 +25,7 @@ def generate_receivers_json(n=3):
         for j in range(random.randint(1, 3)):
             cargo = {
                 'type': f'P{random.randint(1, 5)}',
-                'quantity': str(random.randint(1, 15)),
+                'quantity': str(random.randint(1000, 10000)),
                 'weight': str(round(random.uniform(0.5, 5.0), 1))
             }
             cargos.append(cargo)
@@ -54,3 +54,24 @@ def generate_all_routes_json(warehouses_json, receivers_json):
             }
             routes.append(route)
     return routes
+
+def generate_transport_json(n: int = 5):
+    base_names = ["IVECO Daily", "MAN TGE", "Mercedes Sprinter", "Ford Transit", "AUTO Daily"]
+    trucks_json = []
+
+    for _ in range(n):
+        name = random.choice(base_names)
+        capacity = str(random.randint(6000, 20000))
+        fuel = random.choice(["diesel", "gasoline", "electric", ""])
+        
+        truck_entry = {
+            "name": name,
+            "capacity": capacity
+        }
+
+        if fuel:  # Только если топливо указано
+            truck_entry["fuel"] = fuel
+
+        trucks_json.append(truck_entry)
+
+    return trucks_json

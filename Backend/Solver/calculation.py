@@ -1,6 +1,7 @@
 import ctypes
 import numpy as np
 import RouteClasses as rc
+import BaseClasses as bc
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple
 
@@ -15,6 +16,55 @@ lib.solveTransport.restype = ctypes.POINTER(ctypes.c_int)
 
 lib.FreeResult.argtypes = [ctypes.POINTER(ctypes.c_int)]
 lib.FreeResult.restype = None
+
+@dataclass
+class Calculation:
+    id: int = -1
+    routeMatrix: rc.RouteMatrix = None
+    solvedMatrix: List[List[int]] = field(default_factory=list)
+    route_values: Dict[rc.Route, Tuple[float, float]] = field(default_factory=dict)
+    distance_overall: int = 0
+    cost_per_distance: float = 0.0
+    cost_overall: float = 0.0
+    aux_costs: Dict[str, float] = field(default_factory=dict)
+
+    @classmethod
+    def from_data(cls, routeMatrix, solvedMatrix, cost_per_distance: float):
+        obj = cls(routeMatrix=routeMatrix, solvedMatrix=solvedMatrix, cost_per_distance=cost_per_distance)
+        obj.calculateRoutes()
+        obj.calculateCost()
+        return obj
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Calculation):
+            return NotImplemented
+        return self.id == other.id
+    
+    def __hash__(self):
+        return hash(self.id)
+
+    def __iter__(self):
+        return iter(self.route_values.items())
+    
+    def calculateRoutes(self):
+        for storage_ind in range(len(self.solvedMatrix)):
+            for receiver_ind in range(len(self.solvedMatrix[0])):
+                if (self.solvedMatrix[storage_ind][receiver_ind] > 0):
+                    route = self.routeMatrix.get_by_indices(storage_ind, receiver_ind)
+                    self.distance_overall += route.length
+                    cost_weight = (route.length * self.cost_per_distance, self.solvedMatrix[storage_ind][receiver_ind] * self.routeMatrix.product.weight)
+                    self.route_values[route] = cost_weight
+
+    def calculateCost(self):
+        result = 0
+        try:
+            if len(self.route_values) > 0 and self.cost_per_distance != 0.0:
+                for cw in self:
+                    result += cw[1][0]
+        except:
+            print("A problem occured during calculation")
+        self.cost_overall = result
+        return result
 
 def solve_array_RouteMatrix(routeMatrices: List[rc.RouteMatrix], cost_per_distance):
     calculations = []
@@ -69,51 +119,22 @@ def solve(supply, demand, cost):
 
     return result.reshape((sl, dl))
 
-@dataclass
-class Calculation:
-    id: int = -1
-    routeMatrix: rc.RouteMatrix = None
-    solvedMatrix: List[List[int]] = field(default_factory=list)
-    route_values: Dict[rc.Route, Tuple[float, float]] = field(default_factory=dict)
-    cost_per_distance: float = 0.0
-    cost_overall: float = 0.0
-    aux_costs: Dict[str, float] = field(default_factory=dict)
+def assign_transport_to_routes(route_cost_weight, transports: List[bc.Transport]):
+    min_diff = -1
+    chosen_transport = None 
+    for transport in transports:
+        diff = transport.weight_lift - route_cost_weight[1][1]
+        if (diff <= min_diff and diff >= 0) or min_diff == -1:
+            min_diff = diff
+            chosen_transport = transport
+    return (chosen_transport, route_cost_weight)
 
-    @classmethod
-    def from_data(cls, routeMatrix, solvedMatrix, cost_per_distance: float):
-        obj = cls(routeMatrix=routeMatrix, solvedMatrix=solvedMatrix, cost_per_distance=cost_per_distance)
-        obj.calculateRoutes()
-        obj.calculateCost()
-        return obj
-
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Calculation):
-            return NotImplemented
-        return self.id == other.id
-    
-    def __hash__(self):
-        return hash(self.id)
-
-    def __iter__(self):
-        return iter(self.route_values.items())
-    
-    def calculateRoutes(self):
-        for storage_ind in range(len(self.solvedMatrix)):
-            for receiver_ind in range(len(self.solvedMatrix[0])):
-                if (self.solvedMatrix[storage_ind][receiver_ind] > 0):
-                    route = self.routeMatrix.get_by_indices(storage_ind, receiver_ind)
-                    cost_weight = (route.length * self.cost_per_distance, self.solvedMatrix[storage_ind][receiver_ind] * self.routeMatrix.product.weight)
-                    self.route_values[route] = cost_weight
-
-    def calculateCost(self):
-        result = 0
-        try:
-            if len(self.route_values) > 0 and self.cost_per_distance != 0.0:
-                for cw in self:
-                    result += cw[1][0]
-        except:
-            print("A problem occured during calculation")
-        self.cost_overall = result
-        return result
-    
-            
+def assign_transport_from_calculation(calculation: Calculation, transports: List[bc.Transport]):
+    result = {}
+    for rcw in calculation:
+        trcw = assign_transport_to_routes(rcw, transports)
+        entry = result.get(trcw[0])
+        if entry == None:
+            result[trcw[0]] = []
+        result[trcw[0]].append(trcw[1][0])
+    return result

@@ -7,6 +7,26 @@ from itertools import count
 product_id_counter = count(start=1)
 product_registry: Dict[str, Product] = {}
 
+def build_RouteMatrix(storages, routes):
+    #print("-----building matrix------")
+    result = set()
+    products = set()
+    for storage in storages:
+        for prod in storage:
+            if prod[0] not in products:
+                products.add(prod[0])
+    #print(products)
+    for prod in products:
+        routeMatrix = RouteMatrix(prod)
+        for route in routes:
+            #print(prod)
+            #print(route.storage_ptr.stored_products.keys())
+            #print(route.receiver_ptr.stored_products.keys())
+            if prod in route.storage_ptr.stored_products.keys() and prod in route.receiver_ptr.stored_products.keys():
+                routeMatrix.set_at(route.storage_ptr, route.receiver_ptr, route)
+        result.add(routeMatrix)
+    return result
+
 def get_or_create_product(name: str, weight: str) -> Product:
     if name not in product_registry:
         product_registry[name] = Product(
@@ -59,22 +79,13 @@ def build_Route_from_json(
 
     return route_objects
 
-def build_RouteMatrix(storages, routes):
-    print("-----building matrix------")
-    result = set()
-    products = set()
-    for storage in storages:
-        for prod in storage:
-            if prod[0] not in products:
-                products.add(prod[0])
-    #print(products)
-    for prod in products:
-        routeMatrix = RouteMatrix(prod)
-        for route in routes:
-            print(prod)
-            print(route.storage_ptr.stored_products.keys())
-            print(route.receiver_ptr.stored_products.keys())
-            if prod in route.storage_ptr.stored_products.keys() and prod in route.receiver_ptr.stored_products.keys():
-                routeMatrix.set_at(route.storage_ptr, route.receiver_ptr, route)
-        result.add(routeMatrix)
-    return result
+def build_Transport_from_json(transport_json: List[Dict]) -> List[Transport]:
+    transport_objects = []
+    id_counter = count(start=1)
+    for transport in transport_json:
+        transport_objects.append(Transport(
+            id = next(id_counter),
+            name = transport.get("name", "unnamed"),
+            weight_lift = float(transport.get("capacity", "-1"))
+        ))
+    return transport_objects
