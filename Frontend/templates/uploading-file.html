@@ -28,46 +28,41 @@
     </div>
 {% endblock %}
 
+<!-- uploading-file.html -->
 {% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
+    <script src="/static/js/excel.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const fileInput = document.getElementById('fileInput');
-            const fileInputLabel = document.getElementById('fileInputLabel');
             const uploadBtn = document.getElementById('uploadBtn');
+            const fileInfoText = document.getElementById('fileInfoText');
+            const fileInputLabel = document.getElementById('fileInputLabel');
             const fileInfo = document.getElementById('fileInfo');
             const fileName = document.getElementById('fileName');
             const fileSize = document.getElementById('fileSize');  
-            const fileInfoText = document.getElementById('fileInfoText');
-            let currentFile = null;    
-
-            fileInput.addEventListener('change', function(e) {
-                    if (this.files && this.files.length > 0) {
-                        const file = this.files[0];
-                        
-                        if (!file.name.endsWith('.xlsx')) {
-                            alert('Пожалуйста, выберите файл с расширением .xlsx');
-                            this.value = '';
-                            return;
-                        }
-                        
-                        uploadBtn.disabled = false;
-                        
-                        fileInfoText.textContent = 'Выбранный файл:';
-                        fileName.textContent = file.name;
-                        fileName.href = URL.createObjectURL(file);
-                        fileName.download = file.name;
-                        fileSize.textContent = formatFileSize(file.size);
-                        fileInfo.style.display = 'block';
-                }
-            });
+            let currentFile = null;
             
-            uploadBtn.addEventListener('click', function() {
-                    if (fileInput.files && fileInput.files.length > 0) {
-                        alert('Файл успешно загружен!');
-
-                        fileInfoText.textContent = 'Загруженный файл:';
-                        uploadBtn.disabled = true;
-                }
+            fileInput.addEventListener('change', function(e) {
+                if (this.files && this.files.length > 0) {
+                    const file = this.files[0];
+                    
+                    if (!file.name.endsWith('.xlsx')) {
+                        alert('Пожалуйста, выберите файл с расширением .xlsx');
+                        this.value = '';
+                        return;
+                    }
+                    
+                    uploadBtn.disabled = false;
+                    
+                    fileInfoText.textContent = 'Выбранный файл:';
+                    fileName.textContent = file.name;
+                    fileName.href = URL.createObjectURL(file);
+                    fileName.download = file.name;
+                    fileSize.textContent = formatFileSize(file.size);
+                    fileInfo.style.display = 'block';
+                };
             });
 
             function formatFileSize(bytes) {
@@ -77,6 +72,30 @@
                 const i = Math.floor(Math.log(bytes) / Math.log(k));
                 return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
             }
+            
+            uploadBtn.addEventListener('click', async function() {
+                if (fileInput.files && fileInput.files.length > 0) {
+                    try {
+                        const file = fileInput.files[0];
+                        fileInfoText.textContent = 'Обработка файла...';
+                        
+                        // Загружаем данные из Excel
+                        const data = await transportData.loadFromExcel(file);
+                        console.log(data)
+                        
+                        // Сохраняем данные в cookies и отмечаем, что переход будет с загрузки файла
+                        Cookies.set('excelData', JSON.stringify(data), { expires: 1 });
+                        localStorage.setItem('fromExcelUpload', 'true');
+                        
+                        // Перенаправляем на страницу создания задачи
+                        window.location.href = '/creating-task.html';
+                    } catch (error) {
+                        console.error('Ошибка обработки файла:', error);
+                        fileInfoText.textContent = 'Ошибка обработки файла';
+                        alert('Ошибка при обработке файла: ' + error.message);
+                    }
+                }
+            });
         });
     </script>
 {% endblock %}

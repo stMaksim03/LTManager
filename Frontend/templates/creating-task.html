@@ -107,21 +107,20 @@
         </form>
     </div>
     <div class="types" id="extra-costs-section" style="display: none;">
-    <form class="container">
-        <h2>Дополнительные расходы</h2>
-        <div id="container-extra-costs">
-            <div class="extra-cost-form" id="extra-cost-form-0">
-                <div class="form">
-                    <input type="text" placeholder="Название" class="extra-cost-name-input">
-                    <input type="text" placeholder="Стоимость" class="extra-cost-value-input">
-                    <button type="button" class="bin remove-extra-cost"></button>
+        <form class="container">
+            <h2>Дополнительные расходы</h2>
+            <div id="container-extra-costs">
+                <div class="extra-cost-form" id="extra-cost-form-0">
+                    <div class="form">
+                        <input type="text" placeholder="Название" class="extra-cost-name-input">
+                        <input type="text" placeholder="Стоимость" class="extra-cost-value-input">
+                        <button type="button" class="bin remove-extra-cost"></button>
+                    </div>
                 </div>
             </div>
-        </div>
-        <button type="button" class="add-form-button" id="add-extra-cost">Добавить еще</button>
-    </form>
-</div>
-
+            <button type="button" class="add-form-button" id="add-extra-cost">Добавить еще</button>
+        </form>
+    </div>
 
     <div>
         <button type="submit" class="clear-button">Очистить формы</button>
@@ -131,72 +130,72 @@
 
 {% block extra_js %}
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const settings = JSON.parse(localStorage.getItem('routeSettings')) || {};
+        document.addEventListener('DOMContentLoaded', () => {
+            const settings = JSON.parse(localStorage.getItem('routeSettings')) || {};
 
-        const isSimpleRoute = settings.routeType === 'simple';
-        const considerCapacity = !isSimpleRoute && settings.considerCapacity;
-        const considerFuel = !isSimpleRoute && settings.considerFuel;
-        const considerExtraCosts = !isSimpleRoute && settings.considerExtraCosts;
+            const isSimpleRoute = settings.routeType === 'simple';
+            const considerCapacity = !isSimpleRoute && settings.considerCapacity;
+            const considerFuel = !isSimpleRoute && settings.considerFuel;
+            const considerExtraCosts = !isSimpleRoute && settings.considerExtraCosts;
 
-        // Скрыть секцию машин полностью, если не учитывать вместимость
-        const truckForm = Array.from(document.querySelectorAll('form.container')).find(form =>
-            form.querySelector('h2')?.textContent?.includes('Типы машин')
-        );
-        if (!considerCapacity && truckForm) {
-            truckForm.style.display = 'none';
-        }
+            // Скрыть секцию машин полностью, если не учитывать вместимость
+            const truckForm = Array.from(document.querySelectorAll('form.container')).find(form =>
+                form.querySelector('h2')?.textContent?.includes('Типы машин')
+            );
+            if (!considerCapacity && truckForm) {
+                truckForm.style.display = 'none';
+            }
 
-        // Если учитывать вместимость, но не учитывать топливо — удалить строку с input расхода топлива
-        if (considerCapacity && !considerFuel) {
-            document.querySelectorAll('.truck-fuel-input').forEach(input => {
-                const fuelRow = input.closest('.truck-input-row');
-                if (fuelRow) fuelRow.remove();
-            });
-        }
+            // Если учитывать вместимость, но не учитывать топливо — удалить строку с input расхода топлива
+            if (considerCapacity && !considerFuel) {
+                document.querySelectorAll('.truck-fuel-input').forEach(input => {
+                    const fuelRow = input.closest('.truck-input-row');
+                    if (fuelRow) fuelRow.remove();
+                });
+            }
 
-        // Показать блок дополнительных расходов, если включено
-        const extraCostsSection = document.getElementById('extra-costs-section');
-        if (considerExtraCosts && extraCostsSection) {
-            extraCostsSection.style.display = 'block';
-        }
+            // Показать блок дополнительных расходов, если включено
+            const extraCostsSection = document.getElementById('extra-costs-section');
+            if (considerExtraCosts && extraCostsSection) {
+                extraCostsSection.style.display = 'block';
+            }
 
-        // Добавление доп. расходов
-        document.getElementById('add-extra-cost')?.addEventListener('click', () => {
-            const container = document.getElementById('container-extra-costs');
-            const count = container.children.length;
+            // Добавление доп. расходов
+            document.getElementById('add-extra-cost')?.addEventListener('click', () => {
+                const container = document.getElementById('container-extra-costs');
+                const count = container.children.length;
 
-            const newForm = document.createElement('div');
-            newForm.className = 'extra-cost-form';
-            newForm.id = `extra-cost-form-${count}`;
-            newForm.innerHTML = `
-                <div class="form">
-                    <input type="text" placeholder="Название" class="extra-cost-name-input">
-                    <input type="text" placeholder="Стоимость" class="extra-cost-value-input">
-                    <button type="button" class="bin remove-extra-cost"></button>
-                </div>`;
-            container.appendChild(newForm);
+                const newForm = document.createElement('div');
+                newForm.className = 'extra-cost-form';
+                newForm.id = `extra-cost-form-${count}`;
+                newForm.innerHTML = `
+                    <div class="form">
+                        <input type="text" placeholder="Название" class="extra-cost-name-input">
+                        <input type="text" placeholder="Стоимость" class="extra-cost-value-input">
+                        <button type="button" class="bin remove-extra-cost"></button>
+                    </div>`;
+                container.appendChild(newForm);
 
-            newForm.querySelector('.remove-extra-cost').addEventListener('click', function() {
-                container.removeChild(newForm);
+                newForm.querySelector('.remove-extra-cost').addEventListener('click', function() {
+                    container.removeChild(newForm);
+                    saveFormDataToCookies();
+                });
+                
+                const inputs = newForm.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.addEventListener('input', saveFormDataToCookies);
+                });
+                
                 saveFormDataToCookies();
             });
-            
-            const inputs = newForm.querySelectorAll('input');
-            inputs.forEach(input => {
-                input.addEventListener('input', saveFormDataToCookies);
-            });
-            
-            saveFormDataToCookies();
-        });
 
-        // Удаление доп. расходов
-        document.addEventListener('click', function (e) {
-            if (e.target.classList.contains('remove-extra-cost')) {
-                e.target.closest('.extra-cost-form').remove();
-            }
+            // Удаление доп. расходов
+            document.addEventListener('click', function (e) {
+                if (e.target.classList.contains('remove-extra-cost')) {
+                    e.target.closest('.extra-cost-form').remove();
+                }
+            });
         });
-    });
 
         
         // Глобальные переменные для хранения данных из БД
@@ -216,7 +215,12 @@
         function loadFormDataFromCookies() {
             const savedData = Cookies.get('formData');
             if (savedData) {
-                return JSON.parse(savedData);
+                const parsedData = JSON.parse(savedData);
+                // Гарантируем, что extraCosts всегда будет массивом
+                if (!parsedData.extraCosts) {
+                    parsedData.extraCosts = [];
+                }
+                return parsedData;
             }
             return null;
         }
@@ -373,7 +377,6 @@
             if (!destinationsList) return;
             
             destinationsList.innerHTML = '';
-            console.log(dbData.destinations)
             dbData.destinations.forEach(destination => {
                 const option = document.createElement('option');
                 option.value = destination.name;
@@ -556,49 +559,49 @@
                 saveFormDataToCookies();
             });
 
-        function addNewForm(container, formClass, index, nameValue, fillingValue, fuelValue, fillingLable) {
-            const newForm = document.createElement('div');
-            newForm.classList.add('form', formClass);
-            newForm.id = `${formClass}-${index}`;
+            function addNewForm(container, formClass, index, nameValue, fillingValue, fuelValue, fillingLable) {
+                const newForm = document.createElement('div');
+                newForm.classList.add('form', formClass);
+                newForm.id = `${formClass}-${index}`;
 
-            const isCargoType = formClass === 'form-cargo-type';
-            const nameInputClass = isCargoType ? 'cargo-name-input' : 'truck-name-input';
-            const fillingInputClass = isCargoType ? 'cargo-weight-input' : 'truck-capacity-input';
-            const datalistId = isCargoType ? 'cargo-types-list' : 'truck-types-list';
+                const isCargoType = formClass === 'form-cargo-type';
+                const nameInputClass = isCargoType ? 'cargo-name-input' : 'truck-name-input';
+                const fillingInputClass = isCargoType ? 'cargo-weight-input' : 'truck-capacity-input';
+                const datalistId = isCargoType ? 'cargo-types-list' : 'truck-types-list';
 
-            // Получаем настройки из localStorage
-            const settings = JSON.parse(localStorage.getItem('routeSettings')) || {};
-            const isSimpleRoute = settings.routeType === 'simple';
-            const considerCapacity = !isSimpleRoute && settings.considerCapacity;
-            const considerFuel = !isSimpleRoute && settings.considerFuel;
+                // Получаем настройки из localStorage
+                const settings = JSON.parse(localStorage.getItem('routeSettings')) || {};
+                const isSimpleRoute = settings.routeType === 'simple';
+                const considerCapacity = !isSimpleRoute && settings.considerCapacity;
+                const considerFuel = !isSimpleRoute && settings.considerFuel;
 
-            if (isCargoType) {
-                newForm.innerHTML = `
-                    <input type="text" placeholder="Наименование" class="${nameInputClass}" list="${datalistId}" value="${nameValue}">
-                    <datalist id="${datalistId}"></datalist>
-                    <input type="text" placeholder="${fillingLable}" class="${fillingInputClass}" value="${fillingValue}">
-                    <button type="button" class="bin remove-${formClass}"></button>
-                `;
-            } else {
-                let formHTML = `
-                    <div class="truck-input-row">
+                if (isCargoType) {
+                    newForm.innerHTML = `
                         <input type="text" placeholder="Наименование" class="${nameInputClass}" list="${datalistId}" value="${nameValue}">
                         <datalist id="${datalistId}"></datalist>
                         <input type="text" placeholder="${fillingLable}" class="${fillingInputClass}" value="${fillingValue}">
                         <button type="button" class="bin remove-${formClass}"></button>
-                    </div>
-                `;
-
-                if (considerFuel) {
-                    formHTML += `
+                    `;
+                } else {
+                    let formHTML = `
                         <div class="truck-input-row">
-                            <input type="text" placeholder="Средний расход топлива на 100 км" class="truck-fuel-input" value="${fuelValue}">
+                            <input type="text" placeholder="Наименование" class="${nameInputClass}" list="${datalistId}" value="${nameValue}">
+                            <datalist id="${datalistId}"></datalist>
+                            <input type="text" placeholder="${fillingLable}" class="${fillingInputClass}" value="${fillingValue}">
+                            <button type="button" class="bin remove-${formClass}"></button>
                         </div>
                     `;
-                }
 
-                newForm.innerHTML = formHTML;
-            }
+                    if (considerFuel) {
+                        formHTML += `
+                            <div class="truck-input-row">
+                                <input type="text" placeholder="Средний расход топлива на 100 км" class="truck-fuel-input" value="${fuelValue}">
+                            </div>
+                        `;
+                    }
+
+                    newForm.innerHTML = formHTML;
+                }
                 container.appendChild(newForm);
 
                 const removeButton = newForm.querySelector(`.remove-${formClass}`);
@@ -791,13 +794,13 @@
                     input.addEventListener('input', saveFormDataToCookies);
                 });
 
-                    // Обновляем списки грузов для новой формы
-                    if (type === 'warehouse') {
-                        updateAllWarehouseCargosLists();
-                    } else {
-                        updateAllDestinationCargosLists();
-                    }
+                // Обновляем списки грузов для новой формы
+                if (type === 'warehouse') {
+                    updateAllWarehouseCargosLists();
+                } else {
+                    updateAllDestinationCargosLists();
                 }
+            }
 
             function addCargoItem(e) {
                 // Получаем элемент, на который было нажатие (может быть либо кнопка, либо событие)
@@ -973,6 +976,682 @@
             return formData;
         }
 
+        function fillFormsFromExcelData(data) {
+            // Очищаем все формы
+            document.getElementById('container-cargo-type').innerHTML = '';
+            document.getElementById('container-truck-type').innerHTML = '';
+            document.getElementById('container-warehouse').innerHTML = '';
+            document.getElementById('container-destination').innerHTML = '';
+            
+            // Показываем блок дополнительных расходов и очищаем его
+            const extraCostsSection = document.getElementById('extra-costs-section');
+            extraCostsSection.style.display = 'block';
+            const extraCostsContainer = document.getElementById('container-extra-costs');
+            extraCostsContainer.innerHTML = '';
+
+            // Используем данные из Excel или из сохраненных cookies
+            const extraCostsData = (data.extraCosts && data.extraCosts.length > 0) ? 
+                data.extraCosts : 
+                [{ name: '', value: '' }];
+
+            extraCostsData.forEach((cost, index) => {
+                const extraForm = document.createElement('div');
+                extraForm.className = 'extra-cost-form';
+                extraForm.id = `extra-cost-form-${index}`;
+                extraForm.innerHTML = `
+                    <div class="form">
+                        <input type="text" placeholder="Название" class="extra-cost-name-input" value="${cost.name || ''}">
+                        <input type="text" placeholder="Стоимость" class="extra-cost-value-input" value="${cost.value || ''}">
+                        <button type="button" class="bin remove-extra-cost"></button>
+                    </div>`;
+                extraCostsContainer.appendChild(extraForm);
+                
+                extraForm.querySelector('.remove-extra-cost').addEventListener('click', function() {
+                    extraCostsContainer.removeChild(extraForm);
+                    saveFormDataToCookies();
+                });
+                
+                const extraInputs = extraForm.querySelectorAll('input');
+                extraInputs.forEach(input => {
+                    input.addEventListener('input', saveFormDataToCookies);
+                });
+            });
+
+            // Заполняем типы грузов
+            data.cargoTypes.forEach((cargo, index) => {
+                const container = document.getElementById('container-cargo-type');
+                const newForm = document.createElement('div');
+                newForm.className = 'form form-cargo-type';
+                newForm.id = `form-cargo-type-${index}`;
+                newForm.innerHTML = `
+                    <input type="text" placeholder="Наименование" class="cargo-name-input" 
+                        list="cargo-types-list" value="${cargo.name || ''}">
+                    <datalist id="cargo-types-list"></datalist>
+                    <input type="text" placeholder="Вес/кг (за ед.)" class="cargo-weight-input" 
+                        value="${cargo.weight || ''}">
+                    <button type="button" class="bin remove-form-cargo-type"></button>
+                `;
+                container.appendChild(newForm);
+            });
+
+            // Заполняем типы машин только если они есть в данных
+            const truckContainer = document.getElementById('container-truck-type');
+            truckContainer.innerHTML = '';
+
+            if (data.truckTypes && data.truckTypes.length > 0) {
+                // Показываем контейнер с формами для машин
+                const truckFormContainer = truckContainer.closest('form.container');
+                truckFormContainer.style='display:block; float:right';
+                truckFormContainer.closest('div.types').style='overflow:auto';
+                
+                data.truckTypes.forEach((truck, index) => {
+                    const newForm = document.createElement('div');
+                    newForm.className = 'form form-truck-type';
+                    newForm.id = `form-truck-type-${index}`;
+                    
+                    let formHTML = `
+                        <div class="truck-input-row">
+                            <input type="text" placeholder="Наименование" class="truck-name-input" 
+                                list="truck-types-list" value="${truck.name || ''}">
+                            <datalist id="truck-types-list"></datalist>
+                            <input type="text" placeholder="Грузоподъемность/т" class="truck-capacity-input" 
+                                value="${truck.capacity || ''}">
+                            <button type="button" class="bin remove-form-truck-type"></button>
+                        </div>
+                    `;
+
+                    if (truck.fuel) {
+                        formHTML += `
+                            <div class="truck-input-row">
+                                <input type="text" placeholder="Средний расход топлива на 100 км" class="truck-fuel-input" 
+                                    value="${truck.fuel || ''}">
+                            </div>
+                        `;
+                    }
+                    
+                    newForm.innerHTML = formHTML;
+                    truckContainer.appendChild(newForm);
+                });
+                
+                // Сохраняем данные о машинах в cookies
+                const formData = {
+                    cargo_types: data.cargoTypes || [],
+                    trucks: data.truckTypes || [],
+                    warehouses: data.warehouses || [],
+                    destinations: data.destinations || [],
+                    extraCosts: []
+                };
+                Cookies.set('formData', JSON.stringify(formData), { expires: 1 });
+
+                const settings = JSON.parse(localStorage.getItem('routeSettings')) || {};
+                settings['routeType'] = 'custom';
+                settings['considerCapacity'] = true;
+                settings['considerFuel'] = data.truckTypes.some(truck => truck.fuel);
+
+                localStorage.setItem('routeSettings', JSON.stringify(settings));
+            } else {
+                // Скрываем контейнер с формами для машин, если их нет в данных
+                truckContainer.closest('form.container').style.display = 'none';
+
+                const settings = JSON.parse(localStorage.getItem('routeSettings')) || {};
+                settings['routeType'] = 'simple';
+                settings['considerCapacity'] = false;
+                settings['considerFuel'] = false;
+
+                localStorage.setItem('routeSettings', JSON.stringify(settings));
+            }
+
+            // Заполняем склады
+            data.warehouses.forEach((warehouse, index) => {
+                const container = document.getElementById('container-warehouse');
+                const newForm = document.createElement('div');
+                newForm.className = 'warehouse-form';
+                newForm.id = `warehouse-form-${index}`;
+                
+                let cargosHTML = '';
+                warehouse.cargos.forEach((cargo, cargoIndex) => {
+                    cargosHTML += `
+                        <div class="cargo-item">
+                            <div class="cargo-item-specification">
+                                <input type="text" placeholder="Тип груза" class="cargo-type-input" 
+                                    list="warehouse-${index}-cargos-${cargoIndex}"
+                                    value="${cargo.type || ''}">
+                                <datalist class="warehouse-cargos-list" id="warehouse-${index}-cargos-${cargoIndex}"></datalist>
+                                <input type="text" placeholder="Количество" class="cargo-quantity-input" 
+                                    value="${cargo.quantity || ''}">
+                                <span class="available-quantity" style="display: none;"></span>
+                            </div>
+                            <div class="cargo-item-buttons">
+                                <button type="button" class="add-cargo">Добавить груз</button>
+                                <button type="button" class="remove-cargo">Удалить груз</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                newForm.innerHTML = `
+                    <div class="form form-place">
+                        <input type="text" placeholder="Название" class="warehouse-name-input" 
+                            list="warehouses-list" value="${warehouse.name || ''}">
+                        <datalist id="warehouses-list"></datalist>
+                        <input type="text" placeholder="Адрес" title="Формат ввода: 'город, улица, дом'" 
+                            class="warehouse-address-input" value="${warehouse.address || ''}">
+                    </div>
+                    <div class="cargo-list">
+                        ${cargosHTML}
+                    </div>
+                    <button type="button" class="remove-warehouse">Удалить склад</button>
+                `;
+                container.appendChild(newForm);
+            });
+
+            // Заполняем пункты назначения
+            data.destinations.forEach((destination, index) => {
+                const container = document.getElementById('container-destination');
+                const newForm = document.createElement('div');
+                newForm.className = 'destination-form';
+                newForm.id = `destination-form-${index}`;
+                
+                let cargosHTML = '';
+                destination.cargos.forEach((cargo, cargoIndex) => {
+                    cargosHTML += `
+                        <div class="cargo-item">
+                            <div class="cargo-item-specification">
+                                <input type="text" placeholder="Тип груза" class="cargo-type-input" 
+                                    list="destination-${index}-cargos-${cargoIndex}"
+                                    value="${cargo.type || ''}">
+                                <datalist id="cargo-types-list"></datalist>
+                                <input type="text" placeholder="Количество" class="cargo-quantity-input" 
+                                    value="${cargo.quantity || ''}">
+                            </div>
+                            <div class="cargo-item-buttons">
+                                <button type="button" class="add-cargo">Добавить груз</button>
+                                <button type="button" class="remove-cargo">Удалить груз</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                newForm.innerHTML = `
+                    <div class="form form-place">
+                        <input type="text" placeholder="Название" class="destination-name-input" 
+                            list="destinations-list" value="${destination.name || ''}">
+                        <datalist id="destinations-list"></datalist>
+                        <input type="text" placeholder="Адрес" title="Формат ввода: 'город, улица, дом'" 
+                            class="destination-address-input" value="${destination.address || ''}">
+                    </div>
+                    <div class="cargo-list">
+                        ${cargosHTML}
+                    </div>
+                    <button type="button" class="remove-destination">Удалить пункт</button>
+                `;
+                container.appendChild(newForm);
+            });
+
+            setTimeout(() => {
+                // Добавляем обработчики для кнопок "Добавить груз" и "Удалить груз"
+                document.querySelectorAll('.add-cargo').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        addCargoItem(e.target || e);
+                    });
+                });
+
+                document.querySelectorAll('.remove-cargo').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        removeCargoItem(e.target || e);
+                    });
+                });
+
+                // Обновляем списки автозаполнения
+                updateCargoTypesList();
+                updateTruckTypesList();
+                updateWarehousesList();
+                updateDestinationsList();
+                updateAllWarehouseCargosLists();
+                updateAllDestinationCargosLists();
+            }, 100);
+
+            function addNewForm(container, type, index, nameValue, addressValue, cargosData) {
+                const newForm = document.createElement('div');
+                newForm.classList.add(`${type}-form`);
+                newForm.id = `${type}-form-${index}`;
+                
+                let cargosHTML = '';
+                if (cargosData && cargosData.length > 0) {
+                    cargosData.forEach((cargo, cargoIndex) => {
+                        cargosHTML += `
+                            <div class="cargo-item">
+                            <div class="cargo-item-specification">
+                                <input type="text" placeholder="Тип груза" class="cargo-type-input" 
+                                    list="warehouse-${index}-cargos-${cargoIndex}"
+                                    value="${cargo.type || ''}">
+                                <datalist class="warehouse-cargos-list" id="warehouse-${index}-cargos-${cargoIndex}"></datalist>
+                                <input type="text" placeholder="Количество" class="cargo-quantity-input" 
+                                    value="${cargo.quantity || ''}">
+                                ${type === 'warehouse' ? '<span class="available-quantity" style="display: none;"></span>' : ''}
+                            </div>
+                            <div class="cargo-item-buttons">
+                                <button type="button" class="add-cargo">Добавить груз</button>
+                                <button type="button" class="remove-cargo">Удалить груз</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                } else {
+                    cargosHTML = `
+                        <div class="cargo-item">
+                            <div class="cargo-item-specification">
+                                <input type="text" placeholder="Тип груза" class="cargo-type-input" 
+                                    list="warehouse-${index}-cargos-0">
+                                <datalist class="warehouse-cargos-list" id="warehouse-${index}-cargos-0"></datalist>
+                                <input type="text" placeholder="Количество" class="cargo-quantity-input">
+                                ${type === 'warehouse' ? '<span class="available-quantity" style="display: none;"></span>' : ''}
+                            </div>
+                            <div class="cargo-item-buttons">
+                                <button type="button" class="add-cargo">Добавить груз</button>
+                                <button type="button" class="remove-cargo">Удалить груз</button>
+                            </div>
+                        </div>
+                    `;
+                }
+                                          
+                newForm.innerHTML = `
+                    <div class="form form-place">
+                        <input type="text" placeholder="Название" class="${type}-name-input" 
+                            list="${type === 'warehouse' ? 'warehouses-list' : 'destinations-list'}" 
+                            value="${nameValue || ''}">
+                        ${type === 'warehouse' ? '<datalist id="warehouses-list"></datalist>' : '<datalist id="destinations-list"></datalist>'}
+                        <input type="text" placeholder="Адрес" title="Формат ввода: 'город, улица, дом'" 
+                            class="${type}-address-input" value="${addressValue || ''}">
+                    </div>
+                    <div class="cargo-list">
+                        ${cargosHTML}
+                    </div>
+                    <button type="button" class="remove-${type}">Удалить ${type === 'warehouse' ? 'склад' : 'пункт'}</button>
+                `;
+                container.appendChild(newForm);
+
+                const extraCostsContainer = document.getElementById('container-extra-costs');
+                extraCostsContainer.innerHTML = '';
+
+                // Всегда добавляем хотя бы одну пустую форму
+                const extraForm = document.createElement('div');
+                extraForm.className = 'extra-cost-form';
+                extraForm.id = 'extra-cost-form-0';
+                extraForm.innerHTML = `
+                    <div class="form">
+                        <input type="text" placeholder="Название" class="extra-cost-name-input">
+                        <input type="text" placeholder="Стоимость" class="extra-cost-value-input">
+                        <button type="button" class="bin remove-extra-cost"></button>
+                    </div>`;
+                extraCostsContainer.appendChild(extraForm);
+
+                extraForm.querySelector('.remove-extra-cost').addEventListener('click', function() {
+                    extraCostsContainer.removeChild(extraForm);
+                    saveFormDataToCookies();
+                });
+
+                const extraInputs = extraForm.querySelectorAll('input');
+                extraInputs.forEach(input => {
+                    input.addEventListener('input', saveFormDataToCookies);
+                });
+
+                setTimeout(() => {
+                    if (type === 'warehouse') {
+                        const warehouseNameInput = newForm.querySelector('.warehouse-name-input');
+                        if (warehouseNameInput.value) {
+                            updateWarehouseCargosList(warehouseNameInput.value, newForm);
+                        } else {
+                            updateFormCargosList(newForm);
+                        }
+                    } else {
+                        updateFormCargosList(newForm);
+                    }
+                }, 0);
+
+                // Добавляем обработчики
+                const addCargoButtons = newForm.querySelectorAll('.add-cargo');
+                const removeCargoButtons = newForm.querySelectorAll('.remove-cargo');
+
+                addCargoButtons.forEach(btn => {
+                    btn.addEventListener('click', addCargoItem);
+                });
+
+                removeCargoButtons.forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        removeCargoItem(e.target); // Передаем сам элемент кнопки, а не событие
+                    });
+                });
+
+                const removeButton = newForm.querySelector(`.remove-${type}`);
+                removeButton.addEventListener('click', () => {
+                    container.removeChild(newForm);
+                    saveFormDataToCookies();
+                    // При удалении формы обновляем списки грузов
+                    if (type === 'warehouse') {
+                        updateAllWarehouseCargosLists();
+                    } else {
+                        updateAllDestinationCargosLists();
+                    }
+                });
+
+                if (type === 'destination') {
+                    const nameInput = newForm.querySelector('.destination-name-input');
+                    nameInput.addEventListener('change', function() {
+                        handleDestinationSelection(this);
+                    });
+                }
+
+                if (type === 'warehouse') {
+                    const nameInput = newForm.querySelector('.warehouse-name-input');
+                    nameInput.addEventListener('change', function() {
+                        handleWarehouseSelection(this);
+                        // При изменении склада обновляем списки грузов
+                        updateAllWarehouseCargosLists();
+                    });
+                    
+                    const cargoTypeInputs = newForm.querySelectorAll('.cargo-type-input');
+                    cargoTypeInputs.forEach(input => {
+                        input.addEventListener('change', function() {
+                            handleWarehouseCargoSelection(this);
+                        });
+                    });
+                } else {
+                    const cargoTypeInputs = newForm.querySelectorAll('.cargo-type-input');
+                    cargoTypeInputs.forEach(input => {
+                        input.addEventListener('change', function() {
+                            // Для пунктов назначения просто обновляем списки
+                            updateFormCargosList(this.closest('.destination-form'));
+                        });
+                    });
+                }
+
+                const inputs = newForm.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.addEventListener('input', saveFormDataToCookies);
+                });
+
+                // Обновляем списки грузов для новой формы
+                if (type === 'warehouse') {
+                    updateAllWarehouseCargosLists();
+                } else {
+                    updateAllDestinationCargosLists();
+                }
+            }
+
+            function addCargoItem(e) {
+                // Получаем элемент, на который было нажатие (может быть либо кнопка, либо событие)
+                const target = e.target || e;
+                const cargoList = target.closest('.cargo-list');
+                
+                if (!cargoList) return;
+                
+                const isWarehouse = target.closest('.warehouse-form') !== null;
+                const warehouseForm = target.closest('.warehouse-form');
+                const warehouseIndex = warehouseForm ? warehouseForm.id.split('-')[2] : '0';
+                const cargoCount = cargoList.querySelectorAll('.cargo-item').length;
+                
+                const newCargoItem = document.createElement('div');
+                newCargoItem.classList.add('cargo-item');
+                newCargoItem.innerHTML = `
+                    <div class="cargo-item-specification">
+                        <input type="text" placeholder="Тип груза" class="cargo-type-input" list="warehouse-${warehouseIndex}-cargos-${cargoCount}">
+                        <datalist class="warehouse-cargos-list" id="warehouse-${warehouseIndex}-cargos-${cargoCount}"></datalist>
+                        <input type="text" placeholder="Количество" class="cargo-quantity-input">
+                        ${isWarehouse ? '<span class="available-quantity" style="display: none;"></span>' : ''}
+                    </div>
+                    <div class="cargo-item-buttons">
+                        <button type="button" class="add-cargo">Добавить груз</button>
+                        <button type="button" class="remove-cargo">Удалить груз</button>
+                    </div>
+                `;
+                cargoList.appendChild(newCargoItem);
+
+                // Добавляем обработчики для новых кнопок
+                newCargoItem.querySelector('.add-cargo').addEventListener('click', function() {
+                    addCargoItem(this);
+                });
+
+                newCargoItem.querySelector('.remove-cargo').addEventListener('click', function() {
+                    removeCargoItem(this);
+                });
+                
+                if (isWarehouse) {
+                    const cargoTypeInput = newCargoItem.querySelector('.cargo-type-input');
+                    cargoTypeInput.addEventListener('change', function() {
+                        const warehouseForm = this.closest('.warehouse-form');
+                        const warehouseNameInput = warehouseForm.querySelector('.warehouse-name-input');
+                        if (warehouseNameInput.value) {
+                            handleWarehouseCargoSelection(this);
+                        }
+                    });
+                }
+
+                // Обновляем списки грузов
+                if (isWarehouse && warehouseForm) {
+                    const warehouseNameInput = warehouseForm.querySelector('.warehouse-name-input');
+                    if (warehouseNameInput.value) {
+                        updateWarehouseCargosList(warehouseNameInput.value, warehouseForm);
+                    } else {
+                        updateFormCargosList(warehouseForm);
+                    }
+                } else {
+                    updateFormCargosList(newCargoItem.closest('.destination-form'));
+                }
+
+                saveFormDataToCookies();
+            }
+
+            function removeCargoItem(button) {
+                const cargoItem = button.closest('.cargo-item');
+                if (!cargoItem) return;
+                
+                const cargoList = cargoItem.closest('.cargo-list');
+                if (!cargoList) return;
+                
+                // Проверяем, что останется хотя бы один элемент груза
+                if (cargoList.querySelectorAll('.cargo-item').length > 1) {
+                    cargoList.removeChild(cargoItem);
+                    saveFormDataToCookies();
+                    
+                    // Обновляем списки грузов после удаления
+                    const form = cargoList.closest('.warehouse-form, .destination-form');
+                    if (form.classList.contains('warehouse-form')) {
+                        updateAllWarehouseCargosLists();
+                    } else {
+                        updateAllDestinationCargosLists();
+                    }
+                }
+            }
+
+            document.getElementById('add-form-cargo-type')?.addEventListener('click', () => {
+                const container = document.getElementById('container-cargo-type');
+                const count = container.children.length;
+                addNewCargoTypeForm(container, count);
+            });
+
+            document.getElementById('add-form-truck-type')?.addEventListener('click', () => {
+                const container = document.getElementById('container-truck-type');
+                const count = container.children.length;
+                addNewTruckTypeForm(container, count);
+            });
+
+            document.getElementById('add-warehouse')?.addEventListener('click', () => {
+                const container = document.getElementById('container-warehouse');
+                const count = container.children.length;
+                addNewWarehouseForm(container, count);
+            });
+
+            document.getElementById('add-destination')?.addEventListener('click', () => {
+                const container = document.getElementById('container-destination');
+                const count = container.children.length;
+                addNewDestinationForm(container, count);
+            });
+
+            function addNewCargoTypeForm(container, index) {
+                const newForm = document.createElement('div');
+                newForm.className = 'form form-cargo-type';
+                newForm.id = `form-cargo-type-${index}`;
+                newForm.innerHTML = `
+                    <input type="text" placeholder="Наименование" class="cargo-name-input" list="cargo-types-list">
+                    <datalist id="cargo-types-list"></datalist>
+                    <input type="text" placeholder="Вес/кг (за ед.)" class="cargo-weight-input">
+                    <button type="button" class="bin remove-form-cargo-type"></button>
+                `;
+                container.appendChild(newForm);
+
+                newForm.querySelector('.remove-form-cargo-type').addEventListener('click', function() {
+                    container.removeChild(newForm);
+                    updateCargoTypesList();
+                    saveFormDataToCookies();
+                });
+                
+                const inputs = newForm.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.addEventListener('input', () => {
+                        updateCargoTypesList();
+                        saveFormDataToCookies();
+                    });
+                });
+                
+                saveFormDataToCookies();
+            }
+            function addNewTruckTypeForm(container, index) {
+                const newForm = document.createElement('div');
+                newForm.className = 'form form-truck-type';
+                newForm.id = `form-truck-type-${index}`;
+                
+                let formHTML = `
+                    <div class="truck-input-row">
+                        <input type="text" placeholder="Наименование" class="truck-name-input" list="truck-types-list">
+                        <datalist id="truck-types-list"></datalist>
+                        <input type="text" placeholder="Грузоподъемность/т" class="truck-capacity-input">
+                        <button type="button" class="bin remove-form-truck-type"></button>
+                    </div>
+                `;
+                
+                const settings = JSON.parse(localStorage.getItem('routeSettings')) || {};
+                if (!settings.isSimpleRoute && settings.considerFuel) {
+                    formHTML += `
+                        <div class="truck-input-row">
+                            <input type="text" placeholder="Средний расход топлива на 100 км" class="truck-fuel-input">
+                        </div>
+                    `;
+                }
+                
+                newForm.innerHTML = formHTML;
+                container.appendChild(newForm);
+
+                newForm.querySelector('.remove-form-truck-type').addEventListener('click', function() {
+                    container.removeChild(newForm);
+                    saveFormDataToCookies();
+                });
+                
+                const inputs = newForm.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.addEventListener('input', saveFormDataToCookies);
+                });
+                
+                saveFormDataToCookies();
+            }
+            function addNewWarehouseForm(container, index) {
+                const newForm = document.createElement('div');
+                newForm.className = 'warehouse-form';
+                newForm.id = `warehouse-form-${index}`;
+                
+                newForm.innerHTML = `
+                    <div class="form form-place">
+                        <input type="text" placeholder="Название" class="warehouse-name-input" list="warehouses-list">
+                        <datalist id="warehouses-list"></datalist>
+                        <input type="text" placeholder="Адрес" title="Формат ввода: 'город, улица, дом'" class="warehouse-address-input">
+                    </div>
+                    <div class="cargo-list">
+                        <div class="cargo-item">
+                            <div class="cargo-item-specification">
+                                <input type="text" placeholder="Тип груза" class="cargo-type-input" list="warehouse-${index}-cargos-0">
+                                <datalist class="warehouse-cargos-list" id="warehouse-${index}-cargos-0"></datalist>
+                                <input type="text" placeholder="Количество" class="cargo-quantity-input">
+                                <span class="available-quantity" style="display: none;"></span>
+                            </div>
+                            <div class="cargo-item-buttons">
+                                <button type="button" class="add-cargo">Добавить груз</button>
+                                <button type="button" class="remove-cargo">Удалить груз</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="remove-warehouse">Удалить склад</button>
+                `;
+                container.appendChild(newForm);
+
+                // Добавляем обработчики для кнопок "Добавить груз" и "Удалить груз"
+                newForm.querySelector('.add-cargo').addEventListener('click', function(e) {
+                    addCargoItem(e.target || e);
+                });
+
+                newForm.querySelector('.remove-cargo').addEventListener('click', function(e) {
+                    removeCargoItem(e.target || e);
+                });
+                
+                newForm.querySelector('.remove-warehouse').addEventListener('click', function() {
+                    container.removeChild(newForm);
+                    saveFormDataToCookies();
+                    updateAllWarehouseCargosLists();
+                });
+                
+                // Обновляем списки для новой формы
+                updateFormCargosList(newForm);
+                saveFormDataToCookies();
+            }
+
+            function addNewDestinationForm(container, index) {
+                const newForm = document.createElement('div');
+                newForm.className = 'destination-form';
+                newForm.id = `destination-form-${index}`;
+                
+                newForm.innerHTML = `
+                    <div class="form form-place">
+                        <input type="text" placeholder="Название" class="destination-name-input" list="destinations-list">
+                        <datalist id="destinations-list"></datalist>
+                        <input type="text" placeholder="Адрес" title="Формат ввода: 'город, улица, дом'" class="destination-address-input">
+                    </div>
+                    <div class="cargo-list">
+                        <div class="cargo-item">
+                            <div class="cargo-item-specification">
+                                <input type="text" placeholder="Тип груза" class="cargo-type-input" list="destination-${index}-cargos-0">
+                                <datalist id="cargo-types-list"></datalist>
+                                <input type="text" placeholder="Количество" class="cargo-quantity-input">
+                            </div>
+                            <div class="cargo-item-buttons">
+                                <button type="button" class="add-cargo">Добавить груз</button>
+                                <button type="button" class="remove-cargo">Удалить груз</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="remove-destination">Удалить пункт</button>
+                `;
+                container.appendChild(newForm);
+                
+                // Добавляем обработчики для кнопок "Добавить груз" и "Удалить груз"
+                newForm.querySelector('.add-cargo').addEventListener('click', function(e) {
+                    addCargoItem(e.target || e);
+                });
+
+                newForm.querySelector('.remove-cargo').addEventListener('click', function(e) {
+                    removeCargoItem(e.target || e);
+                });
+
+                newForm.querySelector('.remove-destination').addEventListener('click', function() {
+                    container.removeChild(newForm);
+                    saveFormDataToCookies();
+                    updateAllDestinationCargosLists();
+                });
+                
+                // Обновляем списки для новой формы
+                updateFormCargosList(newForm);
+                saveFormDataToCookies();
+            }
+        }
+
         function handleRequestError(error) {
             if (error.response) {
                 const { data, status } = error.response;
@@ -999,70 +1678,98 @@
             }
 
             const savedFormData = loadFormDataFromCookies();
-            
-            createLittleDynamicForm(
-                'container-cargo-type', 
-                'form-cargo-type', 
-                'add-form-cargo-type', 
-                'Вес/кг (за ед.)',
-                savedFormData ? savedFormData.cargo_types : []
-            );
-            
-            createLittleDynamicForm(
-                'container-truck-type', 
-                'form-truck-type', 
-                'add-form-truck-type', 
-                'Грузоподъемность/т',
-                savedFormData ? savedFormData.trucks : []
-            );
-            
-            createBigDynamicForm(
-                'container-warehouse', 
-                'add-warehouse', 
-                'warehouse',
-                savedFormData ? savedFormData.warehouses : []
-            );
-            
-            createBigDynamicForm(
-                'container-destination', 
-                'add-destination', 
-                'destination',
-                savedFormData ? savedFormData.destinations : []
-            );
 
+            const extraCostsContainer = document.getElementById('container-extra-costs');
+            extraCostsContainer.innerHTML = '';
+
+            // Всегда показываем секцию дополнительных расходов, если включено в настройках
             const settings = JSON.parse(localStorage.getItem('routeSettings')) || {};
-            const isSimpleRoute = settings.routeType === 'simple';
-            const considerExtraCosts = !isSimpleRoute && settings.considerExtraCosts;
+            const considerExtraCosts = !settings.isSimpleRoute && settings.considerExtraCosts;
 
-            if (considerExtraCosts && savedFormData?.extraCosts) {
-                const container = document.getElementById('container-extra-costs');
-                container.innerHTML = '';
+            if (considerExtraCosts) {
+                const extraCostsSection = document.getElementById('extra-costs-section');
+                extraCostsSection.style.display = 'block';
                 
-                savedFormData.extraCosts.forEach((cost, index) => {
-                    const newForm = document.createElement('div');
-                    newForm.className = 'extra-cost-form';
-                    newForm.id = `extra-cost-form-${index}`;
-                    newForm.innerHTML = `
+                // Используем сохраненные данные или создаем пустую форму
+                const extraCostsData = savedFormData?.extraCosts || [{ name: '', value: '' }];
+                
+                extraCostsData.forEach((cost, index) => {
+                    const extraForm = document.createElement('div');
+                    extraForm.className = 'extra-cost-form';
+                    extraForm.id = `extra-cost-form-${index}`;
+                    extraForm.innerHTML = `
                         <div class="form">
                             <input type="text" placeholder="Название" class="extra-cost-name-input" value="${cost.name || ''}">
                             <input type="text" placeholder="Стоимость" class="extra-cost-value-input" value="${cost.value || ''}">
                             <button type="button" class="bin remove-extra-cost"></button>
                         </div>`;
-                    container.appendChild(newForm);
+                    extraCostsContainer.appendChild(extraForm);
                     
-                    // Добавляем обработчик для кнопки удаления
-                    newForm.querySelector('.remove-extra-cost').addEventListener('click', function() {
-                        container.removeChild(newForm);
+                    extraForm.querySelector('.remove-extra-cost').addEventListener('click', function() {
+                        extraCostsContainer.removeChild(extraForm);
                         saveFormDataToCookies();
                     });
                     
-                    // Добавляем обработчики для полей ввода
-                    const inputs = newForm.querySelectorAll('input');
-                    inputs.forEach(input => {
+                    const extraInputs = extraForm.querySelectorAll('input');
+                    extraInputs.forEach(input => {
                         input.addEventListener('input', saveFormDataToCookies);
                     });
                 });
             }
+
+            // Проверяем, был ли переход с загрузки Excel
+            const fromExcelUpload = localStorage.getItem('fromExcelUpload') === 'true';
+            const excelData = fromExcelUpload ? JSON.parse(Cookies.get('excelData') || '{}') : null;
+            console.log(excelData)
+            
+            // Очищаем флаг после использования
+            if (fromExcelUpload) {
+                localStorage.removeItem('fromExcelUpload');
+            }
+
+            // Если есть данные из Excel, используем их
+            if (fromExcelUpload && excelData) {
+                // Заполняем формы данными из Excel
+                fillFormsFromExcelData(excelData);
+                
+                // Показываем статус загрузки
+                const statusElement = document.getElementById('load-status');
+                statusElement.textContent = 'Данные успешно загружены из Excel';
+                statusElement.style.color = 'green';
+            }  else {
+                // Инициализация форм только если нет данных из Excel
+                createLittleDynamicForm(
+                    'container-cargo-type', 
+                    'form-cargo-type', 
+                    'add-form-cargo-type', 
+                    'Вес/кг (за ед.)',
+                    savedFormData ? savedFormData.cargo_types : []
+                );
+                
+                createLittleDynamicForm(
+                    'container-truck-type', 
+                    'form-truck-type', 
+                    'add-form-truck-type', 
+                    'Грузоподъемность/т',
+                    savedFormData ? savedFormData.trucks : []
+                );
+                
+                createBigDynamicForm(
+                    'container-warehouse', 
+                    'add-warehouse', 
+                    'warehouse',
+                    savedFormData ? savedFormData.warehouses : []
+                );
+                
+                createBigDynamicForm(
+                    'container-destination', 
+                    'add-destination', 
+                    'destination',
+                    savedFormData ? savedFormData.destinations : []
+                );
+            }
+
+            const isSimpleRoute = settings.routeType === 'simple';
 
             setTimeout(() => {
                 updateAllWarehouseCargosLists();

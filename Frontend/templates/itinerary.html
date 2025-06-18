@@ -84,7 +84,7 @@
                     console.warn('Не удалось прочитать настройки маршрута из localStorage', e);
                 }
 
-                if (settings.considerCapacity) {
+                if (settings.considerCapacity || trucks.length > 0) {
                     const truckCountEl = document.getElementById('truck-count');
                     truckCountEl.style.display = 'list-item';
 
@@ -93,26 +93,28 @@
                     truckCountEl.textContent = `Количество машин: ${truckCount}`;
                 }
 
-                if (settings.considerExtraCosts) {
+                if (settings.considerExtraCosts || (data.extraCosts && data.extraCosts.length > 0)) {
                     const extraCostsEl = document.getElementById('extra-costs');
                     extraCostsEl.style.display = 'list-item';
 
-                    // Проверяем что extraCosts — массив и элементы имеют поле value
-                    let sumExtraCosts = 0;
-                    if (data.extraCosts && Array.isArray(data.extraCosts)) {
-                        sumExtraCosts = data.extraCosts.reduce((sum, item) => {
-                            const val = parseFloat(item.value) || 0;
-                            return sum + val;
-                        }, 0);
+                    let sumExtraCosts = data.extraCosts.reduce((sum, item) => {
+                        const val = parseFloat(item.value) || 0;
+                        return sum + val;
+                    }, 0);
+
+                    if (sumExtraCosts > 0) {
+                        extraCostsEl.textContent = `Доп. расходы: ${sumExtraCosts.toLocaleString('ru-RU', { style: 'currency', currency: 'RUB' })}`;
+                    }  else {
+                        document.getElementById('extra-costs').style.display = 'none';
                     }
-                    
-                    extraCostsEl.textContent = `Доп. расходы: ${sumExtraCosts.toLocaleString('ru-RU', { style: 'currency', currency: 'RUB' })}`;
+                } else {
+                    document.getElementById('extra-costs').style.display = 'none';
                 }
             })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-            document.getElementById('trucks-list').innerHTML = '<li>Нет данных для отображения</li>';
-        });
+            .catch(error => {
+                console.error('Error fetching data:', error);
+                document.getElementById('trucks-list').innerHTML = '<li>Нет данных для отображения</li>';
+            });
     }
 
     function geocodeAddress(address, title, map, iconStyle) {
