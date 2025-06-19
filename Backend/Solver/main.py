@@ -11,6 +11,7 @@ def main():
 
     #Генерация тестовых json файлов
     warehouses_json = rd.generate_warehouses_json(10)
+    print(warehouses_json)
     receivers_json = rd.generate_receivers_json(10)
     routes_json = rd.generate_all_routes_json(warehouses_json, receivers_json)
     transport_json = rd.generate_transport_json(10)

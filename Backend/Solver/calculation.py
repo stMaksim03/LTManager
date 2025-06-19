@@ -5,7 +5,7 @@ import BaseClasses as bc
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple
 
-lib = ctypes.CDLL("./libsolver.so")
+lib = ctypes.CDLL("./Backend/Solver/libsolver.so")
 
 lib.solveTransport.argtypes = [
     ctypes.POINTER(ctypes.c_int), ctypes.c_int,

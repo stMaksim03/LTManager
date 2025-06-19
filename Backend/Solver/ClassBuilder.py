@@ -83,9 +83,15 @@ def build_Transport_from_json(transport_json: List[Dict]) -> List[Transport]:
     transport_objects = []
     id_counter = count(start=1)
     for transport in transport_json:
+        wl = 0
+        try:
+            wl = float(transport.get("capacity", "-1"))
+        except:
+            pass
         transport_objects.append(Transport(
             id = next(id_counter),
             name = transport.get("name", "unnamed"),
-            weight_lift = float(transport.get("capacity", "-1"))
+            weight_lift = wl
+            
         ))
     return transport_objects
