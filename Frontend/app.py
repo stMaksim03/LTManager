@@ -338,7 +338,8 @@ def get_logistics_data():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
-
+import logging
+logging.basicConfig(filename='app.log', level=logging.INFO, filemode='w')
 @app.route('/api/compute-routes', methods=['POST'])
 def compute_routes():
     try:
@@ -346,11 +347,120 @@ def compute_routes():
         if not routes_data:
             return jsonify({'success': False, 'message': 'No data provided'}), 400
         
-        print("Received routes data:", routes_data)  # Для отладки
+        # print("Received routes data:", routes_data)  # Для отладки
+        logging.info("Received routes data: %s", routes_data)
         
-        # расчет маршрутов 
+        # Получаем данные из хранилища
+        global data_storage
+        warehouses_data = data_storage.get('warehouses', [])
+        destinations_data = data_storage.get('destinations', [])
+        trucks_data = data_storage.get('trucks', [])
+        extra_costs = data_storage.get('extraCosts', [])
+        print(warehouses_data, destinations_data, trucks_data, extra_costs)
+        logging.info("warehouses_data %s", warehouses_data)
+        logging.info("destinations_data %s", destinations_data)
+        logging.info("trucks_data %s", trucks_data)
+        logging.info("extra_costs %s", extra_costs)
+        
+        # Строим объекты складов и пунктов приема
+        from Backend.Solver.ClassBuilder import build_ProductStorage_from_json, build_Transport_from_json, build_Route_from_json
+        from Backend.Solver.Formaters import array_simple_formatter
+        
+        # Создаем объекты складов
+        warehouses = build_ProductStorage_from_json(warehouses_data)
+        logging.info("warehouses %s", warehouses)
+        
+        # Создаем объекты пунктов приема (используем ту же функцию, так как структура похожа)
+        destinations = build_ProductStorage_from_json(destinations_data)
+        logging.info("destinations %s", destinations)
+        
+        # Создаем объекты маршрутов
+        routes = build_Route_from_json(routes_data, warehouses + destinations)
+        
+        # Создаем объекты транспорта
+        transports = build_Transport_from_json(trucks_data)
+        
+        # Вычисляем оптимальные маршруты и распределяем транспорт
+        result = array_simple_formatter(
+            storages=warehouses,
+            routes=routes,
+            transports=transports,
+            additional_costs=sum(float(cost['value']) for cost in extra_costs),
+            cost_per_distance=1.0  # Можно изменить на нужное значение
+        )
 
-        return jsonify({'success': True, 'message': 'Routes computed successfully'}), 200 # вернуть маршрут
+        print(result)
+        
+        # Подготавливаем данные для фронтенда
+        response_data = {
+            'success': True,
+            'message': 'Routes computed successfully',
+            'statistics': {},
+            'trucks': []
+        }
+
+        # Цвета для разных машин
+        truck_colors = [
+            'islands#blueIcon', 
+            'islands#redIcon',
+            'islands#greenIcon',
+            'islands#yellowIcon',
+            'islands#violetIcon'
+        ]
+
+        if result:
+            for idx, (stats, transport_routes) in enumerate(result):
+                # Сохраняем статистику
+                response_data['statistics'] = {
+                    'path_length': stats.get('length', 0),
+                    'total_cost': stats.get('cost', 0),
+                    'warehouses_count': stats.get('warehouses_count', 0),
+                    'destinations_count': stats.get('destinations_count', 0),
+                    'truck_count': stats.get('truck_count', 0)
+                }
+
+                # Подготавливаем данные по машинам
+                for truck_idx, (truck_name, truck_data) in enumerate(transport_routes.items()):
+                    truck_info = {
+                        'name': truck_name,
+                        'color': truck_colors[truck_idx % len(truck_colors)],
+                        'routes': [],
+                        'warehouses': [],
+                        'destinations': []
+                    }
+
+                    # Добавляем маршруты
+                    for route_key, route in truck_data['routes'].items():
+                        truck_info['routes'].append({
+                            'from': route['from'],
+                            'to': route['to'],
+                            'from_address': route['from_address'],
+                            'to_address': route['to_address'],
+                            'distance_m': route['distance_m'],
+                            'path': route['path']
+                        })
+
+                    # Добавляем склады
+                    for wh_name, wh_address in truck_data['warehouses'].items():
+                        truck_info['warehouses'].append({
+                            'name': wh_name,
+                            'address': wh_address
+                        })
+
+                    # Добавляем пункты назначения
+                    for dest_name, dest_address in truck_data['destinations'].items():
+                        truck_info['destinations'].append({
+                            'name': dest_name,
+                            'address': dest_address
+                        })
+
+                    response_data['trucks'].append(truck_info)
+
+        # Обновляем глобальное хранилище
+        data_storage['computed_routes'] = response_data
+        
+        return jsonify(response_data), 200
+        
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
