@@ -75,6 +75,18 @@
             .catch(error => {
                 console.error('Error fetching data:', error);
             });
+
+            window.addEventListener('routesUpdated', () => {
+                // Повторно загружаем данные и обновляем карту
+                fetch('http://localhost:5000/data')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Обновляем интерфейс с новыми данными
+                        updateStatistics(data.computed_routes.statistics);
+                        displayRoutesOnMap(map, data.computed_routes.trucks);
+                        updateTrucksList(data.computed_routes.trucks);
+                    });
+            });
     }
 
     function updateStatistics(stats) {
@@ -86,6 +98,14 @@
                 
         // Показываем все элементы статистики
         document.getElementById('truck-count').style.display = 'list-item';
+
+        const extraCostsEl = document.getElementById('extra-costs');
+        if (stats.extra_costs && stats.extra_costs > 0) {
+            extraCostsEl.style.display = 'list-item';
+            extraCostsEl.textContent = `Доп. расходы: ${stats.extra_costs.toLocaleString('ru-RU', { style: 'currency', currency: 'RUB' })}`;
+        } else {
+            extraCostsEl.style.display = 'none';
+        }
     }
 
     function displayRoutesOnMap(map, trucks) {
@@ -125,10 +145,18 @@
             }
         });
     }
+
+    const colorMap = {
+        'islands#blueIcon': '#1e98ff',
+        'islands#redIcon': '#ff0000',
+        'islands#greenIcon': '#00ff00',
+        'islands#yellowIcon': '#ffff00',
+        'islands#violetIcon': '#ee82ee'
+    };
     
     function addRoute(map, pathCoords, title, color) {
         const route = new ymaps.Polyline(pathCoords, {}, {
-            strokeColor: color.replace('islands#', '').replace('Icon', ''),
+            strokeColor: colorMap[color] || '#000000',
             strokeWidth: 4,
             strokeOpacity: 0.7
         });

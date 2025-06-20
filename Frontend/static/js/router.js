@@ -50,15 +50,16 @@ async function buildRoutes() {
 
         const resp = await fetch('/api/compute-routes', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json; charset=utf-8' },
             body: JSON.stringify(routesData)
         });
 
         const result = await resp.json();
         console.log("Маршруты успешно рассчитаны:", result);
 
-        // Перенаправляем на страницу с результатами
-        window.location.href = '/itinerary.html';
+        if (result.success) {
+            window.dispatchEvent(new Event('routesUpdated'));
+        }
 
         console.log(routesData)
         console.log("Маршруты успешно рассчитаны");

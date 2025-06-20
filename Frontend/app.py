@@ -350,17 +350,18 @@ def compute_routes():
         # print("Received routes data:", routes_data)  # Для отладки
         logging.info("Received routes data: %s", routes_data)
         
-        # Получаем данные из хранилища
+        # # Получаем данные из хранилища
         global data_storage
         warehouses_data = data_storage.get('warehouses', [])
         destinations_data = data_storage.get('destinations', [])
         trucks_data = data_storage.get('trucks', [])
         extra_costs = data_storage.get('extraCosts', [])
-        print(warehouses_data, destinations_data, trucks_data, extra_costs)
         logging.info("warehouses_data %s", warehouses_data)
         logging.info("destinations_data %s", destinations_data)
         logging.info("trucks_data %s", trucks_data)
         logging.info("extra_costs %s", extra_costs)
+
+        sum_extra_costs = sum(float(cost['value']) for cost in extra_costs if cost.get('value'))
         
         # Строим объекты складов и пунктов приема
         from Backend.Solver.ClassBuilder import build_ProductStorage_from_json, build_Transport_from_json, build_Route_from_json
@@ -376,9 +377,11 @@ def compute_routes():
         
         # Создаем объекты маршрутов
         routes = build_Route_from_json(routes_data, warehouses + destinations)
+        logging.info("routes %s", routes)
         
         # Создаем объекты транспорта
         transports = build_Transport_from_json(trucks_data)
+        logging.info("transports %s", transports)
         
         # Вычисляем оптимальные маршруты и распределяем транспорт
         result = array_simple_formatter(
@@ -389,7 +392,7 @@ def compute_routes():
             cost_per_distance=1.0  # Можно изменить на нужное значение
         )
 
-        print(result)
+        logging.info("result %s", result)
         
         # Подготавливаем данные для фронтенда
         response_data = {
@@ -416,7 +419,8 @@ def compute_routes():
                     'total_cost': stats.get('cost', 0),
                     'warehouses_count': stats.get('warehouses_count', 0),
                     'destinations_count': stats.get('destinations_count', 0),
-                    'truck_count': stats.get('truck_count', 0)
+                    'truck_count': stats.get('truck_count', 0),
+                    'extra_costs': sum_extra_costs
                 }
 
                 # Подготавливаем данные по машинам
@@ -456,8 +460,8 @@ def compute_routes():
 
                     response_data['trucks'].append(truck_info)
 
-        # Обновляем глобальное хранилище
-        data_storage['computed_routes'] = response_data
+        # # Обновляем глобальное хранилище
+        data_storage['computed_routes'] = [response_data]
         
         return jsonify(response_data), 200
         
