@@ -72,11 +72,11 @@
     }
 
     function updateStatistics(stats) {
-        document.getElementById('path-length').textContent = `Длина пути: ${stats.path_length} м`;
+        document.getElementById('path-length').textContent = `Длина пути: ${parseFloat((stats.path_length / 1000).toFixed(1))} км`;
         document.getElementById('warehouse-count').textContent = `Количество складов: ${stats.warehouses_count}`;
         document.getElementById('destination-count').textContent = `Количество пунктов приема: ${stats.destinations_count}`;
         document.getElementById('truck-count').textContent = `Количество машин: ${stats.truck_count}`;
-        document.getElementById('total-cost').textContent = `Суммарные затраты на доставку: ${stats.total_cost.toLocaleString('ru-RU', { style: 'currency', currency: 'RUB' })}`;
+        document.getElementById('total-cost').textContent = `Суммарные затраты на доставку: ${(stats.total_cost / 1000).toLocaleString('ru-RU', { style: 'currency', currency: 'RUB' })}`;
                 
         // Показываем все элементы статистики
         document.getElementById('truck-count').style.display = 'list-item';
@@ -181,7 +181,7 @@
             routesList.innerHTML = '<li class="subheader">Маршруты:</li>';
             truck.routes.forEach(r => {
                 const el = document.createElement('li');
-                el.textContent = `${r.from} → ${r.to} (${r.distance_m} м)`;
+                el.textContent = `${r.from} → ${r.to} (${parseFloat((r.distance_m / 1000).toFixed(1))} км)`;
                 routesList.appendChild(el);
             });
 

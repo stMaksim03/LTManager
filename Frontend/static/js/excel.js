@@ -52,7 +52,7 @@ class TransportTaskData {
             const transports = XLSX.utils.sheet_to_json(workbook.Sheets['ТС'])
                 .map(t => ({
                     name: t['Название'],
-                    capacity: t['Грузоподъемность (кг)'],
+                    capacity: t['Грузоподъемность (т)'],
                     fuel: t['Расход топлива (л/100км)']
                 }));
 

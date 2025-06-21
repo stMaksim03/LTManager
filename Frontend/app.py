@@ -356,6 +356,14 @@ def compute_routes():
         warehouses_data = data_storage.get('warehouses', [])
         destinations_data = data_storage.get('destinations', [])
         trucks_data = data_storage.get('trucks', [])
+        trucks_data = [
+            {
+                **truck,
+                'capacity': str(float(truck.get('capacity', 0)) * 1000),
+                'fuel': str(float(truck.get('fuel', 0)) / 100000)
+            }
+            for truck in trucks_data
+        ]
         extra_costs = data_storage.get('extraCosts', [])
         logging.info("warehouses_data %s", warehouses_data)
         logging.info("destinations_data %s", destinations_data)
@@ -363,7 +371,11 @@ def compute_routes():
         logging.info("extra_costs %s", extra_costs)
 
         sum_extra_costs = sum(float(cost['value']) for cost in extra_costs if cost.get('value'))
-        
+         # Получаем цену топлива из настроек (если есть) или используем значение по умолчанию 1.0
+        route_settings = json.loads(request.headers.get('Route-Settings', '{}'))
+        cost_per_distance = float(route_settings.get('fuelPrice', 0.0))
+        logging.info("cost_per_distance %s", cost_per_distance)
+
         # Строим объекты складов и пунктов приема
         from Backend.Solver.ClassBuilder import build_ProductStorage_from_json, build_Transport_from_json, build_Route_from_json
         from Backend.Solver.Formaters import array_simple_formatter
@@ -390,7 +402,7 @@ def compute_routes():
             routes=routes,
             transports=transports,
             additional_costs=0,
-            cost_per_distance=1.0  # Можно изменить на нужное значение
+            cost_per_distance=cost_per_distance
         )
 
         logging.info("result %s", result)

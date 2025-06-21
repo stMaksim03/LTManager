@@ -46,7 +46,7 @@ def array_double_formatter(solutions : List[Calculation], transports, additional
         result.append(double_formatter(solution, transports, additional_costs))
     return result
 
-def array_simple_formatter(storages, routes, transports, additional_costs = 0, cost_per_distance = 1.0):
+def array_simple_formatter(storages, routes, transports, additional_costs = 0, cost_per_distance = 0.0):
     routeMatrices = build_RouteMatrix(storages, routes)
     calculations = solve_array_RouteMatrix(routeMatrices, cost_per_distance)
     return array_double_formatter(calculations, transports, additional_costs)

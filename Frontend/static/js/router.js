@@ -48,9 +48,13 @@ async function buildRoutes() {
             }
         }
 
+        const routeSettings = localStorage.getItem('routeSettings') || '{}';
+
         const resp = await fetch('/api/compute-routes', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json; charset=utf-8' },
+            headers: { 'Content-Type': 'application/json; charset=utf-8', 
+                'Route-Settings': routeSettings
+            },
             body: JSON.stringify(routesData)
         });
 

@@ -78,6 +78,16 @@
                     try {
                         const file = fileInput.files[0];
                         fileInfoText.textContent = 'Обработка файла...';
+
+                        const settings = {
+                            routeType: "custom",
+                            considerCapacity: true,
+                            considerFuel: true,
+                            fuelPrice: 0,
+                            considerExtraCosts: false
+                        };
+
+                        localStorage.setItem('routeSettings', JSON.stringify(settings));
                         
                         // Загружаем данные из Excel
                         const data = await transportData.loadFromExcel(file);
