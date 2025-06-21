@@ -338,6 +338,7 @@ def get_logistics_data():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
+
 import logging
 logging.basicConfig(filename='app.log', level=logging.INFO, filemode='w')
 @app.route('/api/compute-routes', methods=['POST'])
@@ -348,7 +349,7 @@ def compute_routes():
             return jsonify({'success': False, 'message': 'No data provided'}), 400
         
         # print("Received routes data:", routes_data)  # Для отладки
-        logging.info("Received routes data: %s", routes_data)
+        # logging.info("Received routes data: %s", routes_data)
         
         # # Получаем данные из хранилища
         global data_storage
@@ -377,7 +378,7 @@ def compute_routes():
         
         # Создаем объекты маршрутов
         routes = build_Route_from_json(routes_data, warehouses + destinations)
-        logging.info("routes %s", routes)
+        # logging.info("routes %s", routes)
         
         # Создаем объекты транспорта
         transports = build_Transport_from_json(trucks_data)
@@ -388,7 +389,7 @@ def compute_routes():
             storages=warehouses,
             routes=routes,
             transports=transports,
-            additional_costs=sum(float(cost['value']) for cost in extra_costs),
+            additional_costs=0,
             cost_per_distance=1.0  # Можно изменить на нужное значение
         )
 
@@ -398,9 +399,21 @@ def compute_routes():
         response_data = {
             'success': True,
             'message': 'Routes computed successfully',
-            'statistics': {},
+            'statistics': {
+                'path_length': 0,
+                'total_cost': 0,
+                'warehouses_count': 0,
+                'destinations_count': 0,
+                'truck_count': 0,
+                'extra_costs': float(sum_extra_costs)
+            },
             'trucks': []
         }
+
+        # Собираем уникальные склады, пункты назначения и машины
+        unique_warehouses = set()
+        unique_destinations = set()
+        unique_trucks = set()
 
         # Цвета для разных машин
         truck_colors = [
@@ -413,55 +426,76 @@ def compute_routes():
 
         if result:
             for idx, (stats, transport_routes) in enumerate(result):
-                # Сохраняем статистику
-                response_data['statistics'] = {
-                    'path_length': stats.get('length', 0),
-                    'total_cost': stats.get('cost', 0),
-                    'warehouses_count': stats.get('warehouses_count', 0),
-                    'destinations_count': stats.get('destinations_count', 0),
-                    'truck_count': stats.get('truck_count', 0),
-                    'extra_costs': sum_extra_costs
-                }
+                # Суммируем длины путей и затраты
+                response_data['statistics']['path_length'] += float(stats.get('length', 0))
+                response_data['statistics']['total_cost'] += float(stats.get('cost', 0))
+                logging.info("stats %s", stats)
 
-                # Подготавливаем данные по машинам
+
+                # Собираем уникальные объекты
+                for truck_name, truck_data in transport_routes.items():
+                    unique_trucks.add(truck_name)
+                    
+                    # Склады
+                    for wh_name in truck_data.get('warehouses', {}).keys():
+                        unique_warehouses.add(wh_name)
+                    
+                    # Пункты назначения
+                    for dest_name in truck_data.get('destinations', {}).keys():
+                        unique_destinations.add(dest_name)
+
+                # Создаем данные для машин
                 for truck_idx, (truck_name, truck_data) in enumerate(transport_routes.items()):
                     truck_info = {
-                        'name': truck_name,
+                        'name': str(truck_name),
                         'color': truck_colors[truck_idx % len(truck_colors)],
                         'routes': [],
                         'warehouses': [],
                         'destinations': []
                     }
 
-                    # Добавляем маршруты
-                    for route_key, route in truck_data['routes'].items():
+                    # Обрабатываем маршруты
+                    for route_key, route in truck_data.get('routes', {}).items():
+                        if isinstance(route_key, tuple):
+                            route_key = str(route_key)
+                        
                         truck_info['routes'].append({
-                            'from': route['from'],
-                            'to': route['to'],
-                            'from_address': route['from_address'],
-                            'to_address': route['to_address'],
-                            'distance_m': route['distance_m'],
-                            'path': route['path']
+                            'from': str(route.get('from', '')),
+                            'to': str(route.get('to', '')),
+                            'from_address': str(route.get('from_address', '')),
+                            'to_address': str(route.get('to_address', '')),
+                            'distance_m': float(route.get('distance_m', 0)),
+                            'path': [[float(coord[0]), float(coord[1])] for coord in route.get('path', [])]
                         })
 
-                    # Добавляем склады
-                    for wh_name, wh_address in truck_data['warehouses'].items():
+                    # Обрабатываем склады
+                    for wh_name, wh_address in truck_data.get('warehouses', {}).items():
                         truck_info['warehouses'].append({
-                            'name': wh_name,
-                            'address': wh_address
+                            'name': str(wh_name),
+                            'address': str(wh_address)
                         })
 
-                    # Добавляем пункты назначения
-                    for dest_name, dest_address in truck_data['destinations'].items():
+                    # Обрабатываем пункты назначения
+                    for dest_name, dest_address in truck_data.get('destinations', {}).items():
                         truck_info['destinations'].append({
-                            'name': dest_name,
-                            'address': dest_address
+                            'name': str(dest_name),
+                            'address': str(dest_address)
                         })
 
                     response_data['trucks'].append(truck_info)
 
-        # # Обновляем глобальное хранилище
+            # Устанавливаем количество уникальных объектов
+            response_data['statistics']['warehouses_count'] = len(unique_warehouses)
+            response_data['statistics']['destinations_count'] = len(unique_destinations)
+            response_data['statistics']['truck_count'] = len(unique_trucks)
+                
+            # logging.info("response_data['trucks'] %s", response_data['trucks'])
+
+        # Обновляем глобальное хранилище
         data_storage['computed_routes'] = [response_data]
+        # logging.info("response_data['statistics'] %s", response_data['statistics'])
+
+        logging.info("response_data %s", response_data)
         
         return jsonify(response_data), 200
         

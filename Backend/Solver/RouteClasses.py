@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Dict, Tuple, Optional
-from BaseClasses import ProductStorage, Product
+from Backend.Solver.BaseClasses import ProductStorage, Product
 
 
 @dataclass

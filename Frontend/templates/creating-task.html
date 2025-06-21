@@ -332,7 +332,7 @@
         }
 
         function updateFormCargosList(form) {
-            const datalists = form.querySelectorAll('.warehouse-cargos-list, #cargo-types-list');
+            const datalists = form.querySelectorAll('.warehouse-cargos-list, destination-cargos-list, #cargo-types-list');
             
             datalists.forEach(datalist => {
                 // Сохраняем текущее выбранное значение (если есть)
@@ -810,6 +810,7 @@
                 if (!cargoList) return;
                 
                 const isWarehouse = target.closest('.warehouse-form') !== null;
+                const isDestination = target.closest('.destination-form') !== null;
                 const warehouseForm = target.closest('.warehouse-form');
                 const warehouseIndex = warehouseForm ? warehouseForm.id.split('-')[2] : '0';
                 const cargoCount = cargoList.querySelectorAll('.cargo-item').length;
@@ -829,6 +830,24 @@
                     </div>
                 `;
                 cargoList.appendChild(newCargoItem);
+
+                if (isDestination) {
+                    const destinationForm = target.closest('.destination-form');
+                    const destinationIndex = destinationForm ? destinationForm.id.split('-')[2] : '0';
+                    const cargoCount = cargoList.querySelectorAll('.cargo-item').length;
+                    
+                    newCargoItem.innerHTML = `
+                        <div class="cargo-item-specification">
+                            <input type="text" placeholder="Тип груза" class="cargo-type-input" list="destination-${destinationIndex}-cargos-${cargoCount}">
+                            <datalist class="destination-cargos-list" id="destination-${destinationIndex}-cargos-${cargoCount}"></datalist>
+                            <input type="text" placeholder="Количество" class="cargo-quantity-input">
+                        </div>
+                        <div class="cargo-item-buttons">
+                            <button type="button" class="add-cargo">Добавить груз</button>
+                            <button type="button" class="remove-cargo">Удалить груз</button>
+                        </div>
+                    `;
+                }
 
                 // Добавляем обработчики для новых кнопок
                 newCargoItem.querySelector('.add-cargo').addEventListener('click', function() {
@@ -943,6 +962,28 @@
                         cargos: cargos
                     };
                 }),
+                // destinations: Array.from(document.querySelectorAll('.destination-form')).map(destination => {
+                //     const inputs = destination.querySelectorAll('.form-place input');
+                //     const cargos = Array.from(destination.querySelectorAll('.cargo-item')).map(cargo => {
+                //         const cargoInputs = cargo.querySelectorAll('.cargo-item-specification input');
+                //         // Находим вес для этого типа груза
+                //         const cargoType = cargoInputs[0].value;
+                //         const cargoWeight = Array.from(document.querySelectorAll('.form-cargo-type')).find(form => {
+                //             return form.querySelector('.cargo-name-input').value === cargoType;
+                //         })?.querySelector('.cargo-weight-input').value || '0';
+                        
+                //         return {
+                //             type: cargoType,
+                //             quantity: cargoInputs[1].value,
+                //             weight: cargoWeight
+                //         };
+                //     });
+                //     return {
+                //         name: inputs[0].value,
+                //         address: inputs[1].value,
+                //         cargos: cargos
+                //     };
+                // }),
                 destinations: Array.from(document.querySelectorAll('.destination-form')).map(destination => {
                     const inputs = destination.querySelectorAll('.form-place input');
                     const cargos = Array.from(destination.querySelectorAll('.cargo-item')).map(cargo => {
@@ -1041,7 +1082,7 @@
             if (data.truckTypes && data.truckTypes.length > 0) {
                 // Показываем контейнер с формами для машин
                 const truckFormContainer = truckContainer.closest('form.container');
-                truckFormContainer.style='display:block; float:right';
+                // truckFormContainer.style='display:block; float:right';
                 truckFormContainer.closest('div.types').style='overflow:auto';
                 
                 data.truckTypes.forEach((truck, index) => {
@@ -1146,21 +1187,45 @@
             });
 
             // Заполняем пункты назначения
-            data.destinations.forEach((destination, index) => {
-                const container = document.getElementById('container-destination');
+            const destinationsMap = new Map();
+    
+            if (data.destinations && data.destinations.length > 0) {
+                data.destinations.forEach(destination => {
+                    if (!destinationsMap.has(destination.name)) {
+                        destinationsMap.set(destination.name, {
+                            name: destination.name,
+                            address: destination.address,
+                            cargos: []
+                        });
+                    }
+                    // Добавляем все грузы для этого пункта
+                    if (destination.cargos && destination.cargos.length > 0) {
+                        destination.cargos.forEach(cargo => {
+                            destinationsMap.get(destination.name).cargos.push(cargo);
+                        });
+                    }
+                });
+            }
+
+            // Создаем формы для каждого уникального пункта назначения
+            const container = document.getElementById('container-destination');
+            container.innerHTML = '';
+            
+            let index = 0;
+            destinationsMap.forEach((destinationData, name) => {
                 const newForm = document.createElement('div');
                 newForm.className = 'destination-form';
                 newForm.id = `destination-form-${index}`;
                 
                 let cargosHTML = '';
-                destination.cargos.forEach((cargo, cargoIndex) => {
+                destinationData.cargos.forEach((cargo, cargoIndex) => {
                     cargosHTML += `
                         <div class="cargo-item">
                             <div class="cargo-item-specification">
                                 <input type="text" placeholder="Тип груза" class="cargo-type-input" 
                                     list="destination-${index}-cargos-${cargoIndex}"
                                     value="${cargo.type || ''}">
-                                <datalist id="cargo-types-list"></datalist>
+                                <datalist class="destination-cargos-list" id="destination-${index}-cargos-${cargoIndex}"></datalist>
                                 <input type="text" placeholder="Количество" class="cargo-quantity-input" 
                                     value="${cargo.quantity || ''}">
                             </div>
@@ -1171,14 +1236,14 @@
                         </div>
                     `;
                 });
-                
+                        
                 newForm.innerHTML = `
                     <div class="form form-place">
                         <input type="text" placeholder="Название" class="destination-name-input" 
-                            list="destinations-list" value="${destination.name || ''}">
+                            list="destinations-list" value="${destinationData.name || ''}">
                         <datalist id="destinations-list"></datalist>
                         <input type="text" placeholder="Адрес" title="Формат ввода: 'город, улица, дом'" 
-                            class="destination-address-input" value="${destination.address || ''}">
+                            class="destination-address-input" value="${destinationData.address || ''}">
                     </div>
                     <div class="cargo-list">
                         ${cargosHTML}
@@ -1186,6 +1251,44 @@
                     <button type="button" class="remove-destination">Удалить пункт</button>
                 `;
                 container.appendChild(newForm);
+                
+                // Добавляем обработчик для кнопки удаления пункта
+                newForm.querySelector('.remove-destination').addEventListener('click', function() {
+                    container.removeChild(newForm);
+                    saveFormDataToCookies();
+                    updateAllDestinationCargosLists();
+                });
+
+                index++;
+            });
+
+            // Добавляем обработчики для кнопок удаления в формах типов грузов и машин
+            document.querySelectorAll('.remove-form-cargo-type').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const form = this.closest('.form-cargo-type');
+                    form.parentNode.removeChild(form);
+                    updateCargoTypesList();
+                    saveFormDataToCookies();
+                });
+            });
+
+            document.querySelectorAll('.remove-form-truck-type').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const form = this.closest('.form-truck-type');
+                    form.parentNode.removeChild(form);
+                    saveFormDataToCookies();
+                });
+            });
+
+            // Добавляем обработчики для кнопок удаления складов
+            document.querySelectorAll('.remove-warehouse').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const form = this.closest('.warehouse-form');
+                    const container = document.getElementById('container-warehouse');
+                    container.removeChild(form);
+                    saveFormDataToCookies();
+                    updateAllWarehouseCargosLists();
+                });
             });
 
             setTimeout(() => {
@@ -1387,6 +1490,7 @@
                 if (!cargoList) return;
                 
                 const isWarehouse = target.closest('.warehouse-form') !== null;
+                const isDestination = target.closest('.destination-form') !== null;
                 const warehouseForm = target.closest('.warehouse-form');
                 const warehouseIndex = warehouseForm ? warehouseForm.id.split('-')[2] : '0';
                 const cargoCount = cargoList.querySelectorAll('.cargo-item').length;
@@ -1719,12 +1823,14 @@
 
             // Проверяем, был ли переход с загрузки Excel
             const fromExcelUpload = localStorage.getItem('fromExcelUpload') === 'true';
-            const excelData = fromExcelUpload ? JSON.parse(Cookies.get('excelData') || '{}') : null;
+            // const excelData = fromExcelUpload ? JSON.parse(Cookies.get('excelData') || '{}') : null;
+            const excelData = fromExcelUpload ? JSON.parse(localStorage.getItem('excelData') || '{}') : null;
             console.log(excelData)
             
             // Очищаем флаг после использования
             if (fromExcelUpload) {
                 localStorage.removeItem('fromExcelUpload');
+                localStorage.removeItem('excelData');
             }
 
             // Если есть данные из Excel, используем их

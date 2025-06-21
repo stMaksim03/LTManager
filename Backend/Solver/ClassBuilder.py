@@ -1,7 +1,7 @@
 from typing import List, Dict
 from itertools import count
-from BaseClasses import *
-from RouteClasses import *
+from Backend.Solver.BaseClasses import *
+from Backend.Solver.RouteClasses import *
 from itertools import count
 
 product_id_counter = count(start=1)

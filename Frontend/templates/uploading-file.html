@@ -83,10 +83,10 @@
                         const data = await transportData.loadFromExcel(file);
                         console.log(data)
                         
-                        // Сохраняем данные в cookies и отмечаем, что переход будет с загрузки файла
-                        Cookies.set('excelData', JSON.stringify(data), { expires: 1 });
+                        // Сохраняем данные и отмечаем, что переход будет с загрузки файла
+                        localStorage.setItem('excelData', JSON.stringify(data));
                         localStorage.setItem('fromExcelUpload', 'true');
-                        
+
                         // Перенаправляем на страницу создания задачи
                         window.location.href = '/creating-task.html';
                     } catch (error) {

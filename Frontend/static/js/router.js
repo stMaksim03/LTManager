@@ -58,11 +58,8 @@ async function buildRoutes() {
         console.log("Маршруты успешно рассчитаны:", result);
 
         if (result.success) {
-            window.dispatchEvent(new Event('routesUpdated'));
+            window.dispatchEvent(new CustomEvent('routesUpdated', { detail: result }));
         }
-
-        console.log(routesData)
-        console.log("Маршруты успешно рассчитаны");
 
         await fetch('/api/save-routes', {
             method: 'POST',

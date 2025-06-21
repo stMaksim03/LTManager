@@ -53,40 +53,22 @@
             zoom: 10
         });
 
-        fetch('http://localhost:5000/data')
-            .then(response => response.json())
-            .then(data => {
-                const computedRoutes = data.computed_routes;
-                
-                if (!computedRoutes) {
-                    console.log('Нет данных о вычисленных маршрутах');
-                    return;
-                }
-
-                // Обновляем статистику
-                updateStatistics(computedRoutes.statistics);
-
-                // Отображаем маршруты на карте
-                displayRoutesOnMap(map, computedRoutes.trucks);
-
-                // Обновляем список машин и их маршрутов
-                updateTrucksList(computedRoutes.trucks);
-            })
-            .catch(error => {
-                console.error('Error fetching data:', error);
-            });
-
-            window.addEventListener('routesUpdated', () => {
-                // Повторно загружаем данные и обновляем карту
-                fetch('http://localhost:5000/data')
-                    .then(response => response.json())
-                    .then(data => {
-                        // Обновляем интерфейс с новыми данными
-                        updateStatistics(data.computed_routes.statistics);
-                        displayRoutesOnMap(map, data.computed_routes.trucks);
-                        updateTrucksList(data.computed_routes.trucks);
-                    });
-            });
+        window.addEventListener('routesUpdated', (event) => {
+            const resultData = event.detail;
+            console.log('Received routes data from event:', resultData);
+            
+            // Обновляем интерфейс с новыми данными
+            updateStatistics(resultData.statistics);
+            displayRoutesOnMap(map, resultData.trucks);
+            updateTrucksList(resultData.trucks);
+            
+            // Сохраняем данные в глобальное хранилище (опционально)
+            fetch('http://localhost:5000/data')
+                .then(response => response.json())
+                .then(data => {
+                    data.computed_routes = [resultData];
+                });
+        });
     }
 
     function updateStatistics(stats) {
@@ -179,7 +161,7 @@
             warehousesList.innerHTML = '<li class="subheader">Склады:</li>';
             truck.warehouses.forEach(w => {
                 const el = document.createElement('li');
-                el.textContent = `${w.name}: ${w.address}`;
+                el.textContent = `${w.name}: ${w.address.replace(/{|}|'/g, '')}`;
                 warehousesList.appendChild(el);
             });
 
@@ -189,7 +171,7 @@
             destinationsList.innerHTML = '<li class="subheader">Пункты выдачи:</li>';
             truck.destinations.forEach(d => {
                 const el = document.createElement('li');
-                el.textContent = `${d.name}: ${d.address}`;
+                el.textContent = `${d.name}: ${d.address.replace(/{|}|'/g, '')}`;
                 destinationsList.appendChild(el);
             });
             
