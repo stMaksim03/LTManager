@@ -1,9 +1,9 @@
-from Backend.Solver.ClassBuilder import build_RouteMatrix
-from Backend.Solver.calculation import Calculation, assign_transport_from_calculation, List, solve_array_RouteMatrix
+from . import ClassBuilder as cb
+from . import Calculation as calc
 
-def transport_assigned_formatter(solution : Calculation, transports):
+def transport_assigned_formatter(solution : calc.Calculation, transports):
     formatted_output = {}
-    transport_routes = assign_transport_from_calculation(solution, transports)
+    transport_routes = calc.assign_transport_from_calculation(solution, transports)
     for transport in transport_routes:
         for route in transport_routes[transport]:
             route_data = route.raw_data
@@ -22,7 +22,7 @@ def transport_assigned_formatter(solution : Calculation, transports):
             entry["destinations"][route_data["to"]] = {route_data["to_address"]}
     return formatted_output
 
-def statistics_formatter(solution : Calculation, additional_costs = 0):
+def statistics_formatter(solution : calc.Calculation, additional_costs = 0):
     formatted_output = {"length" : solution.distance_overall, "cost" : solution.cost_overall + additional_costs}
     warehouses = set()
     destinations = set()
@@ -34,19 +34,19 @@ def statistics_formatter(solution : Calculation, additional_costs = 0):
     formatted_output["destinations_count"] = len(destinations)
     return formatted_output
 
-def double_formatter(solution : Calculation, transports, additional_costs = 0):
-    statistics = statistics_formatter(solution, additional_costs)
+def double_formatter(solution : calc.Calculation, transports, additional_costs = 0):
     transports_formatted = transport_assigned_formatter(solution, transports)
+    statistics = statistics_formatter(solution, additional_costs)
     statistics["truck_count"] = len(transports_formatted)
     return (statistics, transports_formatted)
 
-def array_double_formatter(solutions : List[Calculation], transports, additional_costs = 0):
+def array_double_formatter(solutions : calc.List[calc.Calculation], transports, additional_costs = 0):
     result = []
     for solution in solutions:
         result.append(double_formatter(solution, transports, additional_costs))
     return result
 
 def array_simple_formatter(storages, routes, transports, additional_costs = 0, cost_per_distance = 0.0):
-    routeMatrices = build_RouteMatrix(storages, routes)
-    calculations = solve_array_RouteMatrix(routeMatrices, cost_per_distance)
+    routeMatrices = cb.build_RouteMatrix(storages, routes)
+    calculations = calc.solve_array_RouteMatrix(routeMatrices, cost_per_distance)
     return array_double_formatter(calculations, transports, additional_costs)

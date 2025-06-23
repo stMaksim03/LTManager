@@ -21,6 +21,7 @@ class Product:
 class Transport:
     id: int = -1
     name: str = field(default="Unnamed", compare=False)
+    fuel_cost: float = 1.0
     weight_lift: float = -1.0
     aux_info: Dict[str, str] = field(default_factory=dict, compare=False)
 
