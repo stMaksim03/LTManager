@@ -349,24 +349,27 @@ def compute_routes():
             return jsonify({'success': False, 'message': 'No data provided'}), 400
         
         # print("Received routes data:", routes_data)  # Для отладки
-        # logging.info("Received routes data: %s", routes_data)
+        logging.info("Received routes data: %s", routes_data)
         
         # # Получаем данные из хранилища
         global data_storage
         warehouses_data = data_storage.get('warehouses', [])
         destinations_data = data_storage.get('destinations', [])
         trucks_data = data_storage.get('trucks', [])
+        logging.info("warehouses_data %s", warehouses_data)
+        logging.info("destinations_data %s", destinations_data)
+        logging.info("trucks_data %s", trucks_data)
         trucks_data = [
             {
                 **truck,
                 'capacity': str(float(truck.get('capacity', 0)) * 1000),
-                'fuel': str(float(truck.get('fuel', 0)) / 100000)
+                **({'fuel': str(float(truck['fuel']) / 100000)} if truck['fuel'] != 0 else {})
             }
             for truck in trucks_data
         ]
         extra_costs = data_storage.get('extraCosts', [])
-        logging.info("warehouses_data %s", warehouses_data)
-        logging.info("destinations_data %s", destinations_data)
+        # logging.info("warehouses_data %s", warehouses_data)
+        # logging.info("destinations_data %s", destinations_data)
         logging.info("trucks_data %s", trucks_data)
         logging.info("extra_costs %s", extra_costs)
 
