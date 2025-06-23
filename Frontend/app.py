@@ -1,4 +1,5 @@
 from datetime import timedelta
+import math
 import re
 from flask import Flask, json, request, jsonify, render_template, session
 from flask_cors import CORS
@@ -362,8 +363,8 @@ def compute_routes():
         trucks_data = [
             {
                 **truck,
-                'capacity': str(float(truck.get('capacity', 0)) * 1000),
-                **({'fuel': str(float(truck['fuel']) / 100000)} if truck['fuel'] != 0 else {})
+                **({'capacity': str(float(truck.get('capacity', 0)) * 1000)} if len(truck['capacity']) != 0 else {}),
+                **({'fuel': str(float(truck['fuel']) / 100000)} if len(truck['fuel']) != 0 else {})
             }
             for truck in trucks_data
         ]
@@ -444,6 +445,8 @@ def compute_routes():
                 # Суммируем длины путей и затраты
                 response_data['statistics']['path_length'] += float(stats.get('length', 0))
                 response_data['statistics']['total_cost'] += float(stats.get('cost', 0))
+                if (math.isnan(response_data['statistics']['total_cost'])):
+                    response_data['statistics']['total_cost'] = 0
                 logging.info("stats %s", stats)
 
 

@@ -1,11 +1,11 @@
 from typing import List, Dict
 from itertools import count
-from . import BaseClasses as bc
-from . import RouteClasses as rc
+from Backend.Solver.BaseClasses import *
+from Backend.Solver.RouteClasses import *
 
 
 product_id_counter = count(start=1)
-product_registry: Dict[str, bc.Product] = {}
+product_registry: Dict[str, Product] = {}
 
 def build_RouteMatrix(storages, routes):
     #print("-----building matrix------")
@@ -17,7 +17,7 @@ def build_RouteMatrix(storages, routes):
                 products.add(prod[0])
     #print(products)
     for prod in products:
-        routeMatrix = rc.RouteMatrix(prod)
+        routeMatrix = RouteMatrix(prod)
         for route in routes:
             #print(prod)
             #print(route.storage_ptr.stored_products.keys())
@@ -27,19 +27,19 @@ def build_RouteMatrix(storages, routes):
         result.add(routeMatrix)
     return result
 
-def get_or_create_product(name: str, weight: str, weight_coef = 1.0) -> bc.Product:
+def get_or_create_product(name: str, weight: str, weight_coef = 1.0) -> Product:
     if name not in product_registry:
-        product_registry[name] = bc.Product(
+        product_registry[name] = Product(
             id=next(product_id_counter),
             name=name,
             weight=float(weight) * weight_coef
         )
     return product_registry[name]
 
-def build_ProductStorage_from_json(warehouses_json: List[Dict], weight_coef = 1.0) -> List[bc.ProductStorage]:
+def build_ProductStorage_from_json(warehouses_json: List[Dict], weight_coef = 1.0) -> List[ProductStorage]:
     result = []
     for entry in warehouses_json:
-        storage = bc.ProductStorage(name=entry["name"], address=entry["address"])
+        storage = ProductStorage(name=entry["name"], address=entry["address"])
         for cargo in entry.get("cargos", []):
             #print(cargo)
             product = get_or_create_product(cargo["type"], cargo["weight"], weight_coef)
@@ -50,9 +50,9 @@ def build_ProductStorage_from_json(warehouses_json: List[Dict], weight_coef = 1.
 
 def build_Route_from_json(
     routes_json: List[Dict],
-    all_storages: List[bc.ProductStorage],
+    all_storages: List[ProductStorage],
     distance_coef: int = 1
-) -> List[rc.Route]:
+) -> List[Route]:
     
 
     route_id_counter = count(start=1)
@@ -69,7 +69,7 @@ def build_Route_from_json(
         if not storage or not receiver:
             continue
 
-        route_obj = rc.Route()
+        route_obj = Route()
         route_obj.id = next(route_id_counter)
         route_obj.length = int(route.get("distance_m", -1)) * distance_coef
         route_obj.storage_ptr = storage
@@ -80,7 +80,7 @@ def build_Route_from_json(
 
     return route_objects
 
-def build_Transport_from_json(transport_json: List[Dict], weight_lift_coef = 1.0, fuel_cost_coef = 1.0) -> List[bc.Transport]:
+def build_Transport_from_json(transport_json: List[Dict], weight_lift_coef = 1.0, fuel_cost_coef = 1.0) -> List[Transport]:
     transport_objects = []
     id_counter = count(start=1)
     for transport in transport_json:
@@ -91,7 +91,7 @@ def build_Transport_from_json(transport_json: List[Dict], weight_lift_coef = 1.0
             fc = float(transport.get("fuel", "1")) * fuel_cost_coef
         except:
             pass
-        transport_objects.append(bc.Transport(
+        transport_objects.append(Transport(
             id = next(id_counter),
             name = transport.get("name", "unnamed"),
             fuel_cost = fc,

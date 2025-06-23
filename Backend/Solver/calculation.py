@@ -4,11 +4,11 @@ import numpy as np
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple
 
-from . import RouteClasses as rt
-from . import BaseClasses as bc
+from Backend.Solver.RouteClasses import Route, RouteMatrix
+from Backend.Solver.BaseClasses import Transport
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-lib_path = os.path.join(current_dir, "libsolver.dll")
+lib_path = os.path.join(current_dir, "libsolver32.dll")
 
 try:
     lib = ctypes.CDLL(lib_path)
@@ -28,9 +28,9 @@ lib.FreeResult.restype = None
 @dataclass
 class Calculation:
     id: int = -1
-    routeMatrix: rt.RouteMatrix = None
+    routeMatrix: RouteMatrix = None
     solvedMatrix: List[List[int]] = field(default_factory=list)
-    route_values: Dict[rt.Route, Tuple[float, float]] = field(default_factory=dict)
+    route_values: Dict[Route, Tuple[float, float]] = field(default_factory=dict)
     distance_overall: int = 0
     cost_per_distance: float = 1.0
     cost_overall: float = 0.0
@@ -61,14 +61,14 @@ class Calculation:
                     self.distance_overall += route.length
                     self.route_values[route] = self.solvedMatrix[storage_ind][receiver_ind] * self.routeMatrix.product.weight
 
-def solve_array_RouteMatrix(routeMatrices: List[rt.RouteMatrix], cost_per_distance):
+def solve_array_RouteMatrix(routeMatrices: List[RouteMatrix], cost_per_distance):
     calculations = []
     for matrix in routeMatrices:
         solution = Calculation.from_data(matrix, solve_from_RouteMatrix(matrix), cost_per_distance)
         calculations.append(solution)
     return calculations
 
-def solve_from_RouteMatrix(routeMatrix: rt.RouteMatrix):
+def solve_from_RouteMatrix(routeMatrix: RouteMatrix):
     lines = routeMatrix.lines
     columns = routeMatrix.columns
     supply = [0] * lines
@@ -114,7 +114,7 @@ def solve(supply, demand, cost):
 
     return result.reshape((sl, dl))
 
-def assign_transport_to_routes(route_weight, transports: List[bc.Transport]):
+def assign_transport_to_routes(route_weight, transports: List[Transport]):
     min_cost = -1
     chosen_transport = None 
     for transport in transports:
@@ -128,7 +128,7 @@ def assign_transport_to_routes(route_weight, transports: List[bc.Transport]):
             chosen_transport = transport
     return (chosen_transport, route_weight[0], cost)
 
-def assign_transport_from_calculation(calculation: Calculation, transports: List[bc.Transport]):
+def assign_transport_from_calculation(calculation: Calculation, transports: List[Transport]):
     result = {}
     for rw in calculation:
         tr, rt, cost = assign_transport_to_routes(rw, transports)

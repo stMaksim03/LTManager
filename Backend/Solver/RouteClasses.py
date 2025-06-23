@@ -1,14 +1,14 @@
 from dataclasses import dataclass, field
 from typing import Dict, Tuple, Optional
-from . import BaseClasses as bc
+from Backend.Solver.BaseClasses import ProductStorage, Product
 
 
 @dataclass
 class Route:
     id: int = -1
     length: int = -1
-    storage_ptr: Optional[bc.ProductStorage] = None
-    receiver_ptr: Optional[bc.ProductStorage] = None
+    storage_ptr: Optional[ProductStorage] = None
+    receiver_ptr: Optional[ProductStorage] = None
     raw_data: Dict[str, str] = field(default_factory=dict)
 
     def __lt__(self, other: 'Route') -> bool:
@@ -36,27 +36,27 @@ class Route:
 
 
 class RouteMatrix:
-    def __init__(self, product : bc.Product):
-        self.storages: list[bc.ProductStorage] = []
-        self.receivers: list[bc.ProductStorage] = []
-        self.routes: Dict[Tuple[bc.ProductStorage, bc.ProductStorage], Route] = {}
+    def __init__(self, product : Product):
+        self.storages: list[ProductStorage] = []
+        self.receivers: list[ProductStorage] = []
+        self.routes: Dict[Tuple[ProductStorage, ProductStorage], Route] = {}
         self.aux_info: Dict[str, str] = {}
-        self.product: bc.Product = product
+        self.product: Product = product
 
-    def add_storage(self, storage: bc.ProductStorage):
+    def add_storage(self, storage: ProductStorage):
         if storage not in self.storages:
             self.storages.append(storage)
 
-    def add_receiver(self, receiver: bc.ProductStorage):
+    def add_receiver(self, receiver: ProductStorage):
         if receiver not in self.receivers:
             self.receivers.append(receiver)
 
-    def set_at(self, storage: bc.ProductStorage, receiver: bc.ProductStorage, route: Route):
+    def set_at(self, storage: ProductStorage, receiver: ProductStorage, route: Route):
         self.add_storage(storage)
         self.add_receiver(receiver)
         self.routes[(storage, receiver)] = route
 
-    def get_at(self, storage: bc.ProductStorage, receiver: bc.ProductStorage) -> Route:
+    def get_at(self, storage: ProductStorage, receiver: ProductStorage) -> Route:
         return self.routes.get((storage, receiver), Route())
 
     def get_by_indices(self, storage_index: int, receiver_index: int) -> Route:
@@ -75,8 +75,8 @@ class RouteMatrix:
     def columns(self) -> int:
         return len(self.receivers)
 
-    def get_storage_vector(self) -> list[bc.ProductStorage]:
+    def get_storage_vector(self) -> list[ProductStorage]:
         return self.storages
 
-    def get_receiver_vector(self) -> list[bc.ProductStorage]:
+    def get_receiver_vector(self) -> list[ProductStorage]:
         return self.receivers
