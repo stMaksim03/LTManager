@@ -47,13 +47,14 @@
 <script>
     ymaps.ready(initMap);
 
-    function initMap() {
-        const map = new ymaps.Map('map', {
-            center: [55.76, 37.64],
-            zoom: 10
-        });
+function initMap() {
+    const map = new ymaps.Map('map', {
+        center: [55.76, 37.64],
+        zoom: 10
+    });
 
-        window.addEventListener('routesUpdated', (event) => {
+    window.addEventListener('routesUpdated', (event) => {
+        setTimeout(() => {
             const resultData = event.detail;
             console.log('Received routes data from event:', resultData);
             
@@ -63,13 +64,15 @@
             updateTrucksList(resultData.trucks);
             
             // Сохраняем данные в глобальное хранилище (опционально)
-            fetch('http://localhost:5000/data')
+            fetch('/data')
                 .then(response => response.json())
                 .then(data => {
                     data.computed_routes = [resultData];
                 });
-        });
-    }
+        }, 1000); // отложенный запуск
+    });
+}
+
 
     function updateStatistics(stats) {
         document.getElementById('path-length').textContent = `Длина пути: ${parseFloat((stats.path_length / 1000).toFixed(1))} км`;
